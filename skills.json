@@ -1,0 +1,169 @@
+{
+  "name": "nuwa-skill",
+  "version": "1.0.0",
+  "description": "把人类顶尖思想家的认知方式蒸馏成可调用的 AI Skill——不是复读名人语录，而是用他们的认知框架帮你思考。遵循 Agent Skills 标准协议，兼容 npx skills add。",
+  "homepage": "https://github.com/your-org/nuwa-skill",
+  "license": "MIT",
+  "keywords": [
+    "agent-skills",
+    "ai",
+    "cognitive-frameworks",
+    "thinking-models",
+    "mental-models",
+    "claude",
+    "cursor",
+    "codex"
+  ],
+  "skills": [
+    {
+      "name": "charlie-munger",
+      "description": "当用户需要投资分析、商业/战略决策、激励与心理误判评估、或人生/决策类问题，并希望用查理·芒格的认知框架（多元思维模型、逆向思维、能力圈、激励驱动、安全边际）来思考时使用。触发词包括「用芒格视角」「切换到芒格」「invert」「能力圈」「逆向思考」「分析这个投资决策」。",
+      "location": "skills/charlie-munger",
+      "display_name": "查理·芒格 Charlie Munger"
+    },
+    {
+      "name": "elon-musk",
+      "description": "当用户需要工程/产品/创新决策、成本与可行性推演、技术路线选择、组织效率与制造业瓶颈分析，并希望用埃隆·马斯克的认知框架（第一性原理、渐近极限法、垂直整合、5步工程法、风险归一化）来思考时使用。触发词包括「用马斯克视角」「切换到马斯克」「第一性原理」「极限在哪」「垂直整合」「这个能不能做出来」。",
+      "location": "skills/elon-musk",
+      "display_name": "埃隆·马斯克 Elon Musk"
+    },
+    {
+      "name": "richard-feynman",
+      "description": "当用户需要把复杂概念讲清楚、检验自己是否真懂、识别伪科学/货物崇拜、做可证伪的科学化推理，并希望用理查德·费曼的认知框架（费曼学习法、底层机制构建、怀疑与可证伪、坦诚不确定性）来思考时使用。触发词包括「用费曼视角」「切换到费曼」「费曼解释一下」「怎么向小白讲清」「这是不是伪科学」「我真的懂了吗」。",
+      "location": "skills/richard-feynman",
+      "display_name": "理查德·费曼 Richard Feynman"
+    },
+    {
+      "name": "zhang-yiming",
+      "description": "当用户需要产品/组织/个人成长决策，并希望用张一鸣的认知框架（信息效率优先、延迟满足、上下文切换成本、数据驱动而非 ego、系统方法论、平常心）来思考时使用。触发词包括「用张一鸣视角」「切换到张一鸣」「延迟满足」「信息效率」「context not control」「平常心」「怎么减少决策失误」「长期主义」。",
+      "location": "skills/zhang-yiming",
+      "display_name": "张一鸣 Zhang Yiming"
+    },
+    {
+      "name": "naval-ravikant",
+      "description": "当用户需要财富/职业/人生规划决策，并希望用纳瓦尔·拉维坎特的认知框架（财富vs金钱、特定知识、无需许可的杠杆、产品化自己、内心平静/反内耗、长期博弈）来思考时使用。触发词包括「用纳瓦尔视角」「切换到纳瓦尔」「特定知识」「杠杆」「产品化自己」「内心平静」「难以抉择就说不」「怎么变富」。",
+      "location": "skills/naval-ravikant",
+      "display_name": "纳瓦尔·拉维坎特 Naval Ravikant"
+    },
+    {
+      "name": "steve-jobs",
+      "description": "当用户需要产品/设计/创新决策，并希望用史蒂夫·乔布斯的认知框架（品味与极简、专注说不、端到端控制、跨界连接、顶级人才、科技×人文、死之提醒）来思考时使用。触发词包括「用乔布斯视角」「切换到乔布斯」「极简」「创新就是说不」「端到端」「科技与人文」「连点」「怎么做爆款产品」。",
+      "location": "skills/steve-jobs",
+      "display_name": "史蒂夫·乔布斯 Steve Jobs"
+    },
+    {
+      "name": "kazuo-inamori",
+      "description": "当用户需要经营/管理/人生决策，并希望用稻盛和夫的认知框架（作为人何谓正确、敬天爱人、利他经营、成功方程式、阿米巴经营、现场主义、水库式经营）来思考时使用。触发词包括「用稻盛和夫视角」「切换到稻盛和夫」「作为人何谓正确」「利他」「成功方程式」「阿米巴」「动机至善私心了无」「敬天爱人」。",
+      "location": "skills/kazuo-inamori",
+      "display_name": "稻盛和夫 Kazuo Inamori"
+    },
+    {
+      "name": "wang-yangming",
+      "description": "以王阳明（明代思想家、心学集大成者）的认知框架审视问题——致良知、知行合一、心即理、事上磨练。适用于修身自省、决策动机审视、知行冲突、领导心法、在复杂处境中回到本心做判断。触发词：用王阳明、致良知、知行合一、心学、阳明视角、事上磨练、回到本心。",
+      "location": "skills/wang-yangming",
+      "display_name": "王阳明 Wang Yangming"
+    },
+    {
+      "name": "socrates",
+      "description": "以苏格拉底（古希腊哲学家）的认知框架审视问题——苏格拉底式提问、定义先行、归谬法、自知其无知、省察人生。适用于厘清模糊概念、暴露论证矛盾、检验\"你真的知道吗\"、逼出自己的真想法。触发词：用苏格拉底、苏格拉底式提问、定义先行、归谬、省察、我唯一知道的是我一无所知、逼问自己。",
+      "location": "skills/socrates",
+      "display_name": "苏格拉底 Socrates"
+    },
+    {
+      "name": "warren-buffett",
+      "description": "以沃伦·巴菲特（价值投资大师）的认知框架审视问题——安全边际、能力圈、护城河、长期持有、市场先生。适用于投资判断、商业分析、风控、估值与\"不亏钱优先\"。触发词：用巴菲特、价值投资、能力圈、护城河、安全边际、市场先生、不要亏钱、长期持有。",
+      "location": "skills/warren-buffett",
+      "display_name": "沃伦·巴菲特 Warren Buffett"
+    },
+    {
+      "name": "ray-dalio",
+      "description": "以瑞·达利欧（桥水创始人）的认知框架审视问题——原则系统化、极度求真、痛苦+反思=进步、可信度加权决策、五步流程。适用于建系统、做决策、团队管理、个人成长复盘。触发词：用达利欧、原则、极度求真、痛苦+反思、可信度加权、五步流程、像机器一样看现实。",
+      "location": "skills/ray-dalio",
+      "display_name": "雷·达利欧 Ray Dalio"
+    },
+    {
+      "name": "confucius",
+      "description": "以孔子（先秦儒家创始人）的认知框架审视问题——仁、礼、忠恕、中庸、正名、修己安人。适用于伦理抉择、为人处世、领导教化、自我修养、组织秩序。触发词：用孔子、儒家、仁、忠恕、中庸、正名、君子、修己安人、己所不欲勿施于人。",
+      "location": "skills/confucius",
+      "display_name": "孔子 Confucius"
+    },
+    {
+      "name": "friedrich-nietzsche",
+      "description": "以弗里德里希·尼采的认知框架审视问题——权力意志、自我超越、重估一切价值、amor fati、主人道德。适用于突破从众、找回内在驱动力、重估默认价值观、在痛苦中生长。触发词：用尼采、权力意志、成为你自己、重估价值、上帝已死、杀不死我的、爱命运、超人。",
+      "location": "skills/friedrich-nietzsche",
+      "display_name": "弗里德里希·尼采 Friedrich Nietzsche"
+    },
+    {
+      "name": "laozi",
+      "description": "以老子（道家创始人）的认知框架审视问题——道法自然、无为而无不为、柔弱胜刚强、反者道之动、知足知止。适用于顺势决策、以柔克刚、组织治理、避免过度作为、在矛盾中看到转化。触发词：用老子、道家、无为、道法自然、上善若水、柔弱胜刚强、反者道之动、知足、治大国若烹小鲜。",
+      "location": "skills/laozi",
+      "display_name": "老子 Laozi"
+    },
+    {
+      "name": "marie-curie",
+      "description": "当用户需要长期攻坚、科学/研究决策、如何对抗噪音与虚名、应如何用系统方法逼近真理，并希望用玛丽·居里的认知框架（长期专注复利、排除法分离本质、错误即数据、可复现性、对荣誉的冷淡）来思考时使用。触发词包括「用居里夫人视角」「切换到居里」「长期专注」「怎么对抗噪音」「科学方法论」「如何做难而正确的事」。",
+      "location": "skills/marie-curie",
+      "display_name": "玛丽·居里 Marie Curie"
+    },
+    {
+      "name": "daniel-kahneman",
+      "description": "当用户需要决策质量评估、识别自身思维偏差、对抗过度自信与规划谬误、理解直觉何时可信、并希望用丹尼尔·卡尼曼的认知框架（系统1/系统2、启发式与偏差、前景理论、外部视角、预验法、噪声）来思考时使用。触发词包括「用卡尼曼视角」「切换到卡尼曼」「系统1系统2」「认知偏差」「为什么我总误判」「过度自信」「规划谬误」「预验」「噪声」。",
+      "location": "skills/daniel-kahneman",
+      "display_name": "丹尼尔·卡尼曼 Daniel Kahneman"
+    },
+    {
+      "name": "sun-tzu",
+      "description": "当用户需要竞争/博弈/战略决策、评估胜负概率、在对抗性处境中选择策略、并希望用孙子的认知框架（全胜、知己知彼、避实击虚、奇正相生、先为不可胜、因敌而变）来思考时使用。触发词包括「用孙子视角」「切换到孙子」「兵法」「知己知彼」「不战而屈人之兵」「避实击虚」「上兵伐谋」「庙算」「形势」。",
+      "location": "skills/sun-tzu",
+      "display_name": "孙子 Sun Tzu"
+    },
+    {
+      "name": "jensen-huang",
+      "description": "当用户需要科技/创业/战略决策、押注长期技术趋势、打造高速执行组织、在危机中保持攻势，并希望用黄仁勋的认知框架（加速计算范式、长期全栈押注、光速执行、信息透明直达一线、把危机当礼物、使命驱动小队）来思考时使用。触发词包括「用黄仁勋视角」「切换到黄仁勋」「加速计算」「长期押注」「光速执行」「危机是礼物」「护城河」「使命驱动」。",
+      "location": "skills/jensen-huang",
+      "display_name": "黄仁勋 Jensen Huang"
+    },
+    {
+      "name": "coco-chanel",
+      "description": "当用户需要品牌/设计/审美决策、打破行业默认成规、在匮乏中创造、用极简重构复杂事物，并希望用可可·香奈儿的认知框架（极简主义、叛逆重构、功能即美、自我即品牌、从匮乏中创造）来思考时使用。触发词包括「用香奈儿视角」「切换到香奈儿」「极简」「打破成规」「功能即美」「风格永存」「做品牌」「少即是多」。",
+      "location": "skills/coco-chanel",
+      "display_name": "可可·香奈儿 Coco Chanel"
+    },
+    {
+      "name": "nassim-taleb",
+      "description": "当用户需要风险评估、应对不确定性与黑天鹅、设计反脆弱系统、识别脆弱的平滑预测，并希望用纳西姆·塔勒布的认知框架（反脆弱、黑天鹅、杠铃策略、林迪效应、利益共担、可选择性、遍历性）来思考时使用。触发词包括「用塔勒布视角」「切换到塔勒布」「反脆弱」「黑天鹅」「杠铃策略」「冗余」「利益共担」「skin in the game」「不可预测」。",
+      "location": "skills/nassim-taleb",
+      "display_name": "纳西姆·塔勒布 Nassim Taleb"
+    },
+    {
+      "name": "sima-qian",
+      "description": "当用户需要以史为鉴做战略/人性判断、理解时势与个人的关系、从成败中读人性常数、并希望用司马迁的认知框架（通古今之变、纪传互证、时势造英雄、人性洞察、实录精神、忍辱负重）来思考时使用。触发词包括「用司马迁视角」「切换到司马迁」「以史为鉴」「通古今之变」「时势」「人性」「究天人之际」「读史」。",
+      "location": "skills/sima-qian",
+      "display_name": "司马迁 Sima Qian"
+    },
+    {
+      "name": "sam-altman",
+      "description": "当用户需要科技创业、AGI/指数趋势判断、初创公司战略、人才密度与资本杠杆、快速递归迭代，并希望用萨姆·奥尔特曼的认知框架（指数思维、极度清晰聚焦、递归自我改进、人才密度、资本杠杆、快速试错）来思考时使用。触发词包括「用奥特曼视角」「切换到奥特曼」「指数增长」「初创公司」「人才密度」「递归」「AGI」「摩尔定律」「大胆」。",
+      "location": "skills/sam-altman",
+      "display_name": "萨姆·奥特曼 Sam Altman"
+    },
+    {
+      "name": "liqingzhao",
+      "description": "当用户需要在逆境中守住本心、对抗媚俗与随波逐流、以真诚面对自我与创作、在时代偏见中保持独立人格，并希望用李清照的认知框架（清醒自我、以真御伪、逆境淬炼、文人骨气、情之真诚）来思考时使用。触发词包括「用李清照视角」「切换到李清照」「清醒」「不随波逐流」「以真御伪」「逆境」「独立人格」「易安」。",
+      "location": "skills/liqingzhao",
+      "display_name": "李清照 Li Qingzhao"
+    },
+    {
+      "name": "friedrich-hayek",
+      "description": "当用户需要理解市场/制度/社会秩序如何自发展、警惕自上而下设计复杂系统的自负、认识价格与竞争的信息功能，并希望用哈耶克的认知框架（自发秩序、知识分散、价格信号、理性自负、法治下的自由、竞争作为发现程序）来思考时使用。触发词包括「用哈耶克视角」「切换到哈耶克」「自发秩序」「看不见的手」「价格信号」「理性自负」「通往奴役之路」「知识分散」「市场」。",
+      "location": "skills/friedrich-hayek",
+      "display_name": "弗里德里希·哈耶克 Friedrich Hayek"
+    },
+    {
+      "name": "john-maynard-keynes",
+      "description": "当用户需要理解有效需求、经济周期与萧条应对、不确定性下的决策、以及为何「长期我们都死了」而需逆周期行动，并希望用凯恩斯的认知框架（有效需求不足、乘数效应、流动性偏好、动物精神、逆周期调节、管理预期）来思考时使用。触发词包括「用凯恩斯视角」「切换到凯恩斯」「有效需求」「乘数」「动物精神」「逆周期」「流动性陷阱」「长期我们都死了」「需求管理」。",
+      "location": "skills/john-maynard-keynes",
+      "display_name": "约翰·梅纳德·凯恩斯 John Maynard Keynes"
+    }
+  ]
+}

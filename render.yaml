@@ -1,0 +1,21 @@
+services:
+  - type: web
+    name: nuwa-h5
+    runtime: node
+    plan: free
+    buildCommand: "true"
+    startCommand: "node server.js"
+    healthCheckPath: "/api/persons"
+    envVars:
+      - key: NODE_VERSION
+        value: "18"
+      - key: OPENAI_ENDPOINT
+        sync: false
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: OPENAI_MODEL
+        value: "deepseek-chat"
+      - key: ADMIN_TOKEN
+        sync: false
+      - key: FREE_QUOTA
+        value: "3"

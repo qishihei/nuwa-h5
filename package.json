@@ -1,0 +1,13 @@
+{
+  "name": "nuwa-h5",
+  "version": "1.0.2",
+  "description": "思想会客厅 H5 版 - 选大师提问并付费解锁",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "private": true
+}

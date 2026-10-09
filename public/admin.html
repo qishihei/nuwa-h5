@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>后台解锁 · 思想会客厅</title>
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <header class="hd">
+    <h1>后台解锁</h1>
+    <p class="sub">用户付款后，输入其 uid + 套餐，一键加次数</p>
+  </header>
+  <main>
+    <section class="block">
+      <label class="lbl">管理员口令</label>
+      <input id="token" type="password" placeholder="ADMIN_TOKEN（默认 nuwa-admin）" />
+    </section>
+    <section class="block">
+      <label class="lbl">用户 uid</label>
+      <input id="uid" placeholder="用户付款截图里的 uid，或从链接 /?uid= 取" />
+      <button id="queryBtn" class="primary" style="margin-top:12px;">查询余额</button>
+      <div id="qResult" class="empty" style="margin-top:10px;"></div>
+    </section>
+    <section class="block">
+      <label class="lbl">解锁套餐</label>
+      <select id="pkg" class="sel"></select>
+      <button id="unlockBtn" class="primary" style="margin-top:12px;">确认解锁并加次数</button>
+      <div id="uResult" class="empty" style="margin-top:10px;"></div>
+    </section>
+    <p class="tip" style="font-size:12px;color:#9b8f7d;padding:0 16px;">
+      提示：正式发给用户时，可在付款页把 uid 带在链接上（如 <code>/?uid=xxx</code>），用户付款后你把该 uid 粘贴进来解锁。
+    </p>
+  </main>
+  <div class="toast" id="toast" hidden></div>
+  <script src="/admin.js"></script>
+</body>
+</html>
