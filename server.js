@@ -32,6 +32,7 @@ const MODEL = process.env.OPENAI_MODEL || 'deepseek-chat';
 const CONFIGURED = !!(ENDPOINT && API_KEY);
 const ADMIN_TOKEN = process.env.ADMIN_TOKEN || 'nuwa-admin';
 const PKGS = [
+  { id: 'all', name: '全解锁', price: 19.9, quota: 0, permanent: true },
   { id: 'lite', name: '轻会员', price: 9.9, quota: 3 },
   { id: 'deep', name: '深度对照', price: 29.9, quota: 10 },
   { id: 'master', name: '大师包', price: 99.0, quota: 40 },
@@ -53,10 +54,11 @@ loadSkillsMeta().skills.forEach(s => { if (s.name) DISPLAY[s.name] = s.display_n
 const STORE_PATH = path.join(ROOT, 'data', 'store.json');
 let store = (() => { try { return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8')); } catch (e) { return { users: {}, pains: {}, questions: [] }; } })();
 function saveStore() { try { fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true }); fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2)); } catch (e) {} }
-function ensureUser(uid) { if (!uid) return null; if (!store.users[uid]) store.users[uid] = { used: 0, bonus: 0 }; return store.users[uid]; }
-function remaining(uid) { const u = ensureUser(uid); if (!u) return 0; return Math.max(0, FREE_QUOTA - u.used) + (u.bonus || 0); }
+function ensureUser(uid) { if (!uid) return null; if (!store.users[uid]) store.users[uid] = { used: 0, bonus: 0, permanent: false }; return store.users[uid]; }
+function remaining(uid) { const u = ensureUser(uid); if (!u) return 0; if (u.permanent) return -1; return Math.max(0, FREE_QUOTA - u.used) + (u.bonus || 0); }
 function consume(uid) {
   const u = ensureUser(uid); if (!u) return null;
+  if (u.permanent) return 'permanent';
   if (u.used < FREE_QUOTA) { u.used++; saveStore(); return 'free'; }
   if (u.bonus > 0) { u.bonus--; saveStore(); return 'bonus'; }
   return null;
@@ -176,7 +178,7 @@ const server = http.createServer(async (req, res) => {
       const uid = u.searchParams.get('uid') || '';
       if (!uid) return sendJSON(res, 400, { error: '缺少 uid' });
       const user = ensureUser(uid);
-      return sendJSON(res, 200, { remaining: remaining(uid), free_used: user.used, bonus: user.bonus || 0, free_quota: FREE_QUOTA, pkgs: PKGS });
+      return sendJSON(res, 200, { remaining: remaining(uid), permanent: !!user.permanent, free_used: user.used, bonus: user.bonus || 0, free_quota: FREE_QUOTA, pkgs: PKGS });
     }
 
     if (p === '/api/admin/unlock' && req.method === 'POST') {
@@ -185,8 +187,9 @@ const server = http.createServer(async (req, res) => {
       const uid = body.uid || '';
       if (!uid) return sendJSON(res, 400, { error: '缺少 uid' });
       const pkg = PKGS.find(x => x.id === body.pkg) || PKGS[0];
-      addBonus(uid, pkg.quota);
-      return sendJSON(res, 200, { remaining: remaining(uid), added: pkg.quota });
+      if (pkg.permanent) { const user = ensureUser(uid); user.permanent = true; saveStore(); }
+      else addBonus(uid, pkg.quota);
+      return sendJSON(res, 200, { remaining: remaining(uid), permanent: !!pkg.permanent, added: pkg.permanent ? '∞' : pkg.quota });
     }
 
     if (p === '/api/pain-hit' && req.method === 'POST') {

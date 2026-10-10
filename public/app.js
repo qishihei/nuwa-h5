@@ -17,6 +17,7 @@ const EN_NAMES = {
   'john-maynard-keynes': 'John Maynard Keynes',
 };
 const PKGS = [
+  { id: 'all', name: '全解锁', en: 'All Access', price: 19.9, quota: 0, permanent: true },
   { id: 'lite', name: '轻会员', en: 'Lite', price: 9.9, quota: 3 },
   { id: 'deep', name: '深度对照', en: 'Deep Contrast', price: 29.9, quota: 10 },
   { id: 'master', name: '大师包', en: 'Master Pack', price: 99.0, quota: 40 },
@@ -59,7 +60,8 @@ async function refreshQuota() {
   const r = await fetch(API + '/api/me?uid=' + uid());
   const d = await r.json();
   state.pkgs = d.pkgs || state.pkgs;
-  quotaBar.textContent = (EN ? 'Free uses left: ' : '剩余次数：') + (d.remaining === undefined ? '…' : d.remaining);
+  if (d.permanent) quotaBar.textContent = (EN ? 'All unlocked ✓' : '已全解锁 ✓');
+  else quotaBar.textContent = (EN ? 'Free uses left: ' : '剩余次数：') + (d.remaining === undefined ? '…' : d.remaining);
   return d;
 }
 
@@ -91,7 +93,8 @@ function showPay() {
   state.pkgs.forEach(pk => {
     const o = document.createElement('div');
     o.className = 'opt' + (pk.id === state.pkg.id ? ' on' : '');
-    o.innerHTML = (EN ? pk.en : pk.name) + '<small>¥' + pk.price + ' / ' + pk.quota + (EN ? ' uses' : '次') + '</small>';
+    const sub = pk.permanent ? (EN ? 'Unlimited' : '全解锁 · 任用') : (pk.quota + (EN ? ' uses' : '次'));
+    o.innerHTML = (EN ? pk.en : pk.name) + '<small>¥' + pk.price + ' / ' + sub + '</small>';
     o.onclick = () => { state.pkg = pk; [...pkgEl.children].forEach(c => c.classList.remove('on')); o.classList.add('on'); };
     pkgEl.appendChild(o);
   });
@@ -241,3 +244,9 @@ renderExamples();   // 先用兜底池渲染，避免空白
 loadPains();        // 拉取 /pains.json 后自动重渲染
 loadPainWeights();  // 拉取服务端点击权重后自动重渲染
 if (location.search.indexOf('stats') !== -1) showPainStats();
+
+// 注入作者微信号（来自 config.js，避免硬编码写死在 HTML）
+(function () {
+  const wx = document.getElementById('authorWx');
+  if (wx && window.AUTHOR_WECHAT) wx.textContent = window.AUTHOR_WECHAT;
+})();
