@@ -68,10 +68,13 @@ async function loadPersons() {
   const d = await r.json();
   state.persons = d.persons || [];
   personsEl.innerHTML = '';
-  state.persons.forEach(p => {
+  const AVATAR_COLORS = ['#c0563b','#b07b2c','#5b8a72','#3f6fa3','#8a5a9e','#a6444f','#4a8c8c','#9c6b3f','#6b7bbf','#b5892f','#7a8450','#bd6a8a'];
+  state.persons.forEach((p, i) => {
     const el = document.createElement('div');
     el.className = 'person';
-    el.textContent = EN ? (EN_NAMES[p.name] || p.display_name) : p.display_name;
+    const nm = EN ? enNameOf(p.display_name) : p.display_name;
+    const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
+    el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
     el.onclick = () => {
       if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
       else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
