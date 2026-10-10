@@ -4,6 +4,8 @@
 
 ## 一、部署到 Render（推荐，免费起步）
 
+> 本仓库已自带 `render.yaml`。最省事的做法：把本仓库连到 Render 并选择「Blueprint」方式，会自动按 `render.yaml` 建好 Web Service（`startCommand`、`NODE_VERSION`、默认环境变量都已配好）。你只需在 Render 控制台补填 3 个 secret 变量：`OPENAI_ENDPOINT`、`OPENAI_API_KEY`、`ADMIN_TOKEN`（**务必设为 `nh2026secret`**，否则后台 `admin.html` 登不进）。其余变量有默认值，不用改。部署成功后 `/api/persons` 健康检查通过即说明人物数据加载正常。
+
 1. 把代码推到 GitHub / GitLab 等 Git 仓库。
 2. Render 控制台 → **New → Web Service** → 连接仓库。
 3. 关键设置：
