@@ -1,38 +1,60 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>后台解锁 · 思想会客厅</title>
-  <link rel="stylesheet" href="/style.css" />
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>解锁后台 · 仅作者可用</title>
+<style>
+  body{font-family:system-ui,-apple-system,"PingFang SC",sans-serif;max-width:480px;margin:40px auto;padding:0 16px;color:#222;}
+  h1{font-size:18px;}
+  label{display:block;margin:14px 0 4px;font-size:13px;color:#555;}
+  input,select{width:100%;padding:10px;font-size:15px;border:1px solid #ccc;border-radius:8px;box-sizing:border-box;}
+  button{margin-top:20px;width:100%;padding:12px;font-size:16px;background:#111;color:#fff;border:0;border-radius:8px;}
+  .msg{margin-top:16px;padding:10px;border-radius:8px;font-size:14px;display:none;}
+  .ok{background:#e8f8ee;color:#0a7a3c;}
+  .err{background:#fdecec;color:#b00020;}
+  .tip{font-size:12px;color:#999;margin-top:24px;line-height:1.6;}
+</style>
 </head>
 <body>
-  <header class="hd">
-    <h1>后台解锁</h1>
-    <p class="sub">用户付款后，输入其 uid + 套餐，一键加次数</p>
-  </header>
-  <main>
-    <section class="block">
-      <label class="lbl">管理员口令</label>
-      <input id="token" type="password" placeholder="ADMIN_TOKEN（默认 nuwa-admin）" />
-    </section>
-    <section class="block">
-      <label class="lbl">用户 uid</label>
-      <input id="uid" placeholder="用户付款截图里的 uid，或从链接 /?uid= 取" />
-      <button id="queryBtn" class="primary" style="margin-top:12px;">查询余额</button>
-      <div id="qResult" class="empty" style="margin-top:10px;"></div>
-    </section>
-    <section class="block">
-      <label class="lbl">解锁套餐</label>
-      <select id="pkg" class="sel"></select>
-      <button id="unlockBtn" class="primary" style="margin-top:12px;">确认解锁并加次数</button>
-      <div id="uResult" class="empty" style="margin-top:10px;"></div>
-    </section>
-    <p class="tip" style="font-size:12px;color:#9b8f7d;padding:0 16px;">
-      提示：正式发给用户时，可在付款页把 uid 带在链接上（如 <code>/?uid=xxx</code>），用户付款后你把该 uid 粘贴进来解锁。
-    </p>
-  </main>
-  <div class="toast" id="toast" hidden></div>
-  <script src="/admin.js"></script>
+<h1>解锁后台（仅作者）</h1>
+<p style="font-size:13px;color:#888;">朋友扫码付款后，把他的「用户ID」和付款截图发你，确认到账后在此解锁。</p>
+
+<label>管理口令（ADMIN_TOKEN）</label>
+<input id="token" type="password" placeholder="在 Render 环境变量里，如 nh2026secret" />
+
+<label>用户ID（朋友在弹窗里复制给你的那串）</label>
+<input id="uid" type="text" placeholder="例如 ehkyxn2js7kmv16ou3i" />
+
+<label>套餐</label>
+<select id="pkg">
+  <option value="lite">轻会员 ¥9.9 / 3 次</option>
+  <option value="deep">深度对照 ¥29.9 / 10 次</option>
+  <option value="master">大师包 ¥99 / 40 次</option>
+</select>
+
+<button id="go">确认解锁</button>
+<div class="msg" id="msg"></div>
+
+<p class="tip">入口：https://你的域名.onrender.com/admin.html（URL 不公开，且必须口令正确才能改数据，外人进不来）。</p>
+
+<script>
+const $ = s => document.querySelector(s);
+$('#go').onclick = async () => {
+  const token = $('#token').value.trim();
+  const uid = $('#uid').value.trim();
+  const pkg = $('#pkg').value;
+  const msg = $('#msg');
+  msg.style.display = 'none';
+  if (!token || !uid) { msg.className='msg err'; msg.style.display='block'; msg.textContent='口令和用户ID都要填'; return; }
+  try {
+    const r = await fetch('/api/admin/unlock', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ admin_token: token, uid, pkg }) });
+    const d = await r.json();
+    msg.style.display = 'block';
+    if (r.ok) { msg.className='msg ok'; msg.textContent = '解锁成功！该用户剩余次数：' + d.remaining + '（已加 ' + d.added + ' 次）'; }
+    else { msg.className='msg err'; msg.textContent = '失败：' + (d.error||'未知错误'); }
+  } catch(e) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请求出错：'+e.message; }
+};
+</script>
 </body>
 </html>

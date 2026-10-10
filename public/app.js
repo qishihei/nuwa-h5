@@ -126,10 +126,5 @@ function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;'
 
 $('#askBtn').onclick = ask;
 $('#closePay').onclick = () => $('#payMask').hidden = true;
-$('#demoUnlock').onclick = async () => {
-  const r = await fetch('/api/unlock-demo', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), pkg: state.pkg.id }) });
-  const d = await r.json();
-  if (d.remaining !== undefined) { $('#payMask').hidden = true; await refreshQuota(); toast('已解锁（演示）'); }
-};
 
 loadPersons();

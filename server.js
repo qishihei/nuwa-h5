@@ -157,15 +157,6 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, 200, { remaining: remaining(uid), free_used: user.used, bonus: user.bonus || 0, free_quota: FREE_QUOTA, pkgs: PKGS });
     }
 
-    if (p === '/api/unlock-demo' && req.method === 'POST') {
-      const body = JSON.parse(await readBody(req) || '{}');
-      const uid = body.uid || '';
-      if (!uid) return sendJSON(res, 400, { error: '缺少 uid' });
-      const pkg = PKGS.find(x => x.id === body.pkg) || PKGS[0];
-      addBonus(uid, pkg.quota);
-      return sendJSON(res, 200, { remaining: remaining(uid), added: pkg.quota });
-    }
-
     if (p === '/api/admin/unlock' && req.method === 'POST') {
       const body = JSON.parse(await readBody(req) || '{}');
       if (body.admin_token !== ADMIN_TOKEN) return sendJSON(res, 403, { error: 'forbidden' });
