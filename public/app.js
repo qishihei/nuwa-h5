@@ -1,10 +1,25 @@
 // 思想会客厅 H5 前端逻辑（服务端额度版）
 const API = window.API_BASE || '';
 const FREE_QUOTA = 3;
+const EN = window.NUWA_EN === true;
+// 英文版：给 LLM 追加的指令（复用中文大师框架，但回答变英文）
+const EN_INSTR = '\n\n[Respond in English, applying the thinker\'s cognitive framework. Keep the same depth and structure.]';
+// 英文版：大师英文名映射（按 skills.json 的 name 键）
+const EN_NAMES = {
+  'charlie-munger': 'Charlie Munger', 'elon-musk': 'Elon Musk', 'richard-feynman': 'Richard Feynman',
+  'zhang-yiming': 'Zhang Yiming', 'naval-ravikant': 'Naval Ravikant', 'steve-jobs': 'Steve Jobs',
+  'kazuo-inamori': 'Kazuo Inamori', 'wang-yangming': 'Wang Yangming', 'socrates': 'Socrates',
+  'warren-buffett': 'Warren Buffett', 'ray-dalio': 'Ray Dalio', 'confucius': 'Confucius',
+  'friedrich-nietzsche': 'Friedrich Nietzsche', 'laozi': 'Laozi', 'marie-curie': 'Marie Curie',
+  'daniel-kahneman': 'Daniel Kahneman', 'sun-tzu': 'Sun Tzu', 'jensen-huang': 'Jensen Huang',
+  'coco-chanel': 'Coco Chanel', 'nassim-taleb': 'Nassim Taleb', 'sima-qian': 'Sima Qian',
+  'sam-altman': 'Sam Altman', 'liqingzhao': 'Li Qingzhao', 'friedrich-hayek': 'Friedrich Hayek',
+  'john-maynard-keynes': 'John Maynard Keynes',
+};
 const PKGS = [
-  { id: 'lite', name: '轻会员', price: 9.9, quota: 3 },
-  { id: 'deep', name: '深度对照', price: 29.9, quota: 10 },
-  { id: 'master', name: '大师包', price: 99.0, quota: 40 },
+  { id: 'lite', name: '轻会员', en: 'Lite', price: 9.9, quota: 3 },
+  { id: 'deep', name: '深度对照', en: 'Deep Contrast', price: 29.9, quota: 10 },
+  { id: 'master', name: '大师包', en: 'Master Pack', price: 99.0, quota: 40 },
 ];
 
 const state = {
@@ -44,7 +59,7 @@ async function refreshQuota() {
   const r = await fetch(API + '/api/me?uid=' + uid());
   const d = await r.json();
   state.pkgs = d.pkgs || state.pkgs;
-  quotaBar.textContent = '剩余次数：' + (d.remaining === undefined ? '…' : d.remaining);
+  quotaBar.textContent = (EN ? 'Free uses left: ' : '剩余次数：') + (d.remaining === undefined ? '…' : d.remaining);
   return d;
 }
 
@@ -56,10 +71,10 @@ async function loadPersons() {
   state.persons.forEach(p => {
     const el = document.createElement('div');
     el.className = 'person';
-    el.textContent = p.display_name;
+    el.textContent = EN ? (EN_NAMES[p.name] || p.display_name) : p.display_name;
     el.onclick = () => {
       if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
-      else { if (state.selected.size >= 5) { toast('最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
+      else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
     };
     personsEl.appendChild(el);
   });
@@ -73,7 +88,7 @@ function showPay() {
   state.pkgs.forEach(pk => {
     const o = document.createElement('div');
     o.className = 'opt' + (pk.id === state.pkg.id ? ' on' : '');
-    o.innerHTML = pk.name + '<small>¥' + pk.price + ' / ' + pk.quota + '次</small>';
+    o.innerHTML = (EN ? pk.en : pk.name) + '<small>¥' + pk.price + ' / ' + pk.quota + (EN ? ' uses' : '次') + '</small>';
     o.onclick = () => { state.pkg = pk; [...pkgEl.children].forEach(c => c.classList.remove('on')); o.classList.add('on'); };
     pkgEl.appendChild(o);
   });
@@ -86,13 +101,14 @@ function toast(msg) {
 }
 
 async function ask() {
-  const q = $('#question').value.trim();
-  if (state.selected.size === 0) { toast('请先选择至少一位大师'); return; }
-  if (!q) { toast('请输入你的问题'); return; }
+  const qRaw = $('#question').value.trim();
+  if (state.selected.size === 0) { toast(EN ? 'Select at least one thinker' : '请先选择至少一位大师'); return; }
+  if (!qRaw) { toast(EN ? 'Enter your question' : '请输入你的问题'); return; }
+  const q = EN ? (qRaw + EN_INSTR) : qRaw;
 
   const btn = $('#askBtn');
-  btn.disabled = true; btn.textContent = '思考中…';
-  resultsEl.innerHTML = '<div class="loading">正在请大师们思考…</div>';
+  btn.disabled = true; btn.textContent = EN ? 'Thinking…' : '思考中…';
+  resultsEl.innerHTML = '<div class="loading">' + (EN ? 'The thinkers are reflecting…' : '正在请大师们思考…') + '</div>';
 
   try {
     let d;
@@ -101,15 +117,15 @@ async function ask() {
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
-      resultsEl.innerHTML = card(d.display_name, d.answer);
+      resultsEl.innerHTML = card(EN ? enNameOf(d.display_name) : d.display_name, d.answer);
     } else {
       const r = await fetch(API + '/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), persons: [...state.selected], question: q }) });
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
       let html = '';
-      d.answers.forEach(a => html += card(a.display_name, a.answer));
-      if (d.analysis) html += card('整合对比', d.analysis, true);
+      d.answers.forEach(a => html += card(EN ? enNameOf(a.display_name) : a.display_name, a.answer));
+      if (d.analysis) html += card(EN ? 'Synthesis' : '整合对比', d.analysis, true);
       resultsEl.innerHTML = html;
     }
     await refreshQuota();
@@ -124,6 +140,12 @@ function card(name, ans, isAnalysis) {
   return '<div class="card' + (isAnalysis ? ' analysis' : '') + '"><h4>' + name + '</h4><div class="ans">' + escapeHtml(ans) + '</div></div>';
 }
 function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+// 英文版：从 "查理·芒格 Charlie Munger" 这类 display_name 中提取末尾英文部分
+function enNameOf(disp) {
+  if (!disp) return disp;
+  const m = disp.match(/[A-Za-z][A-Za-z .'&-]*$/);
+  return m ? m[0] : disp;
+}
 
 $('#askBtn').onclick = ask;
 $('#closePay').onclick = () => $('#payMask').hidden = true;
@@ -139,7 +161,7 @@ let PAIN_POOL = [
 ];
 async function loadPains() {
   try {
-    const r = await fetch('/pains.json');
+    const r = await fetch(EN ? '/pains_en.json' : '/pains.json');
     if (r.ok) { const arr = await r.json(); if (Array.isArray(arr) && arr.length) PAIN_POOL = arr; }
   } catch (e) {}
   renderExamples();
