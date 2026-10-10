@@ -150,6 +150,24 @@ function shuffle(arr) {
   return a;
 }
 
+// ——— 痛点点击热度（本地 localStorage 记录，?stats 查看排名）———
+function recordPainHit(q) {
+  try {
+    const s = JSON.parse(localStorage.getItem('nuwa_pain_hits') || '{}');
+    s[q] = (s[q] || 0) + 1;
+    localStorage.setItem('nuwa_pain_hits', JSON.stringify(s));
+  } catch (e) {}
+}
+function showPainStats() {
+  try {
+    const s = JSON.parse(localStorage.getItem('nuwa_pain_hits') || '{}');
+    const rows = Object.entries(s).sort((a, b) => b[1] - a[1]);
+    if (!rows.length) { alert('还没有记录到任何点击。\n在首页点几个示例问题后，再访问本页 ?stats 即可看到排名。'); return; }
+    const html = rows.map(([q, n], i) => (i + 1) + '. ' + n + ' 次 — ' + q).join('\n');
+    alert('痛点示例点击排名（仅本机记录）:\n\n' + html);
+  } catch (e) {}
+}
+
 function renderExamples() {
   const wrap = $('#exWrap');
   if (!wrap) return;
@@ -157,7 +175,7 @@ function renderExamples() {
   shuffle(PAIN_POOL).slice(0, 6).forEach(item => {
     const s = document.createElement('span');
     s.textContent = item.label;
-    s.onclick = () => { $('#question').value = item.q; $('#question').focus(); };
+    s.onclick = () => { recordPainHit(item.q); $('#question').value = item.q; $('#question').focus(); };
     wrap.appendChild(s);
   });
 }
@@ -169,3 +187,4 @@ setInterval(() => { if (!$('#question').value.trim()) renderExamples(); }, 12000
 loadPersons();
 renderExamples();   // 先用兜底池渲染，避免空白
 loadPains();        // 拉取 /pains.json 后自动重渲染
+if (location.search.indexOf('stats') !== -1) showPainStats();
