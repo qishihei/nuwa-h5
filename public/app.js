@@ -127,4 +127,20 @@ function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;'
 $('#askBtn').onclick = ask;
 $('#closePay').onclick = () => $('#payMask').hidden = true;
 
+// 点击痛点示例 → 自动填入问题框
+document.querySelectorAll('.ex span').forEach(el => {
+  el.onclick = () => {
+    const q = el.textContent;
+    $('#question').value = {
+      '负债 30 万怎么翻身': '我背了 30 万负债，每月工资一到手就还债，看不到头。我该怎么规划，才能真正翻身？',
+      '月薪 8 千该辞职吗': '我月薪 8 千，工作稳定但一眼望到头，心里一直有个想做的事。我该不该辞职去追？',
+      '35 岁被裁怎么办': '我 35 岁刚被裁员，投了几十份简历没回音。是继续找工作，还是趁这个机会做点自己的事？',
+      '存款为零还有救吗': '工作五六年存款为零，月薪不高花得不少。我想开始攒钱和搞副业，第一步该怎么做？',
+      '该不该离婚': '这段婚姻让我很消耗，但孩子和现实让我不敢轻易决定。我到底该不该离？',
+      '要不要回小城市': '在大城市漂着累但机会多，回小城市舒服但怕废掉。我该怎么选？',
+    }[q] || q;
+    $('#question').focus();
+  };
+});
+
 loadPersons();
