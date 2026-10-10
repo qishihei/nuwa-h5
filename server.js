@@ -129,7 +129,12 @@ function analyzeCompare(answers, question, maxTokens) {
 
 // ——— 工具 ———
 function sendJSON(res, code, obj) {
-  res.writeHead(code, { 'Content-Type': 'application/json; charset=utf-8' });
+  res.writeHead(code, {
+    'Content-Type': 'application/json; charset=utf-8',
+    'Access-Control-Allow-Origin': '*',
+    'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type',
+  });
   res.end(JSON.stringify(obj));
 }
 function readBody(req) {
@@ -152,6 +157,15 @@ const server = http.createServer(async (req, res) => {
   const p = u.pathname;
   console.log('[req]', new Date().toLocaleTimeString(), req.method, req.url);
   try {
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204, {
+        'Access-Control-Allow-Origin': '*',
+        'Access-Control-Allow-Methods': 'GET, POST, OPTIONS',
+        'Access-Control-Allow-Headers': 'Content-Type',
+        'Access-Control-Max-Age': '86400',
+      });
+      return res.end();
+    }
     if (p === '/api/persons') {
       const meta = loadSkillsMeta();
       const list = meta.skills.map(s => ({ name: s.name, display_name: s.display_name }));
