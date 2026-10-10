@@ -36,6 +36,11 @@
 <button id="go">确认解锁</button>
 <div class="msg" id="msg"></div>
 
+<hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
+<h1 style="font-size:16px;">热点问题（全用户真实点击）</h1>
+<button id="statsBtn" style="background:#5a4a36;">查看热点排名</button>
+<div class="msg" id="statsMsg"></div>
+
 <p class="tip">入口：https://你的域名.onrender.com/admin.html（URL 不公开，且必须口令正确才能改数据，外人进不来）。</p>
 
 <script>
@@ -53,6 +58,23 @@ $('#go').onclick = async () => {
     msg.style.display = 'block';
     if (r.ok) { msg.className='msg ok'; msg.textContent = '解锁成功！该用户剩余次数：' + d.remaining + '（已加 ' + d.added + ' 次）'; }
     else { msg.className='msg err'; msg.textContent = '失败：' + (d.error||'未知错误'); }
+  } catch(e) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请求出错：'+e.message; }
+};
+
+$('#statsBtn').onclick = async () => {
+  const token = $('#token').value.trim();
+  const msg = $('#statsMsg');
+  msg.style.display = 'none';
+  if (!token) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请先填管理口令'; return; }
+  try {
+    const r = await fetch('/api/admin/pain-stats?admin_token=' + encodeURIComponent(token));
+    const d = await r.json();
+    msg.style.display = 'block';
+    if (!r.ok) { msg.className='msg err'; msg.textContent = '失败：' + (d.error||'未知错误'); return; }
+    if (!d.rows.length) { msg.className='msg ok'; msg.textContent = '暂无点击记录。让朋友在首页多点几个示例问题。'; return; }
+    msg.className='msg ok';
+    msg.style.whiteSpace='pre-wrap';
+    msg.textContent = '热点问题排名（全用户）:\n\n' + d.rows.map((x,i)=>(i+1)+'. '+(x.n)+' 次 — '+x.q).join('\n');
   } catch(e) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请求出错：'+e.message; }
 };
 </script>

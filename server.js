@@ -51,7 +51,7 @@ loadSkillsMeta().skills.forEach(s => { if (s.name) DISPLAY[s.name] = s.display_n
 
 // ——— 服务端额度存储（零依赖，落盘到 data/store.json）———
 const STORE_PATH = path.join(ROOT, 'data', 'store.json');
-let store = (() => { try { return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8')); } catch (e) { return { users: {} }; } })();
+let store = (() => { try { return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8')); } catch (e) { return { users: {}, pains: {} }; } })();
 function saveStore() { try { fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true }); fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2)); } catch (e) {} }
 function ensureUser(uid) { if (!uid) return null; if (!store.users[uid]) store.users[uid] = { used: 0, bonus: 0 }; return store.users[uid]; }
 function remaining(uid) { const u = ensureUser(uid); if (!u) return 0; return Math.max(0, FREE_QUOTA - u.used) + (u.bonus || 0); }
@@ -68,6 +68,7 @@ function refund(uid, type) {
   saveStore();
 }
 function addBonus(uid, n) { const u = ensureUser(uid); if (!u) return; u.bonus = (u.bonus || 0) + n; saveStore(); }
+function recordPainHit(q) { if (!q) return; store.pains[q] = (store.pains[q] || 0) + 1; saveStore(); }
 
 // ——— LLM（OpenAI 兼容，核心 https，无第三方依赖）———
 function callLLM(system, question, maxTokens) {
@@ -165,6 +166,21 @@ const server = http.createServer(async (req, res) => {
       const pkg = PKGS.find(x => x.id === body.pkg) || PKGS[0];
       addBonus(uid, pkg.quota);
       return sendJSON(res, 200, { remaining: remaining(uid), added: pkg.quota });
+    }
+
+    if (p === '/api/pain-hit' && req.method === 'POST') {
+      const body = JSON.parse(await readBody(req) || '{}');
+      const q = (body.q || '').trim();
+      if (!q) return sendJSON(res, 400, { error: '缺少 q' });
+      recordPainHit(q);
+      return sendJSON(res, 200, { ok: true });
+    }
+
+    if (p === '/api/admin/pain-stats' && req.method === 'GET') {
+      const tk = u.searchParams.get('admin_token') || '';
+      if (tk !== ADMIN_TOKEN) return sendJSON(res, 403, { error: 'forbidden' });
+      const rows = Object.entries(store.pains || {}).map(([q, n]) => ({ q, n })).sort((a, b) => b.n - a.n);
+      return sendJSON(res, 200, { rows });
     }
 
     if (p === '/api/ask' && req.method === 'POST') {

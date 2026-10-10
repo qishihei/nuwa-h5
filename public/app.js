@@ -158,6 +158,10 @@ function recordPainHit(q) {
     localStorage.setItem('nuwa_pain_hits', JSON.stringify(s));
   } catch (e) {}
 }
+// 同时上报到服务端（用于后台聚合真实用户热度）
+function sendPainHit(q) {
+  try { fetch('/api/pain-hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q }) }); } catch (e) {}
+}
 function showPainStats() {
   try {
     const s = JSON.parse(localStorage.getItem('nuwa_pain_hits') || '{}');
@@ -175,7 +179,7 @@ function renderExamples() {
   shuffle(PAIN_POOL).slice(0, 6).forEach(item => {
     const s = document.createElement('span');
     s.textContent = item.label;
-    s.onclick = () => { recordPainHit(item.q); $('#question').value = item.q; $('#question').focus(); };
+    s.onclick = () => { recordPainHit(item.q); sendPainHit(item.q); $('#question').value = item.q; $('#question').focus(); };
     wrap.appendChild(s);
   });
 }
