@@ -41,6 +41,11 @@
 <button id="statsBtn" style="background:#5a4a36;">查看热点排名</button>
 <div class="msg" id="statsMsg"></div>
 
+<hr style="border:none;border-top:1px solid #eee;margin:24px 0;" />
+<h1 style="font-size:16px;">用户真实提问（内容选题库）</h1>
+<button id="qBtn" style="background:#5a4a36;">查看用户都问了啥</button>
+<div class="msg" id="qMsg"></div>
+
 <p class="tip">入口：https://你的域名.onrender.com/admin.html（URL 不公开，且必须口令正确才能改数据，外人进不来）。</p>
 
 <script>
@@ -75,6 +80,26 @@ $('#statsBtn').onclick = async () => {
     msg.className='msg ok';
     msg.style.whiteSpace='pre-wrap';
     msg.textContent = '热点问题排名（全用户）:\n\n' + d.rows.map((x,i)=>(i+1)+'. '+(x.n)+' 次 — '+x.q).join('\n');
+  } catch(e) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请求出错：'+e.message; }
+};
+
+$('#qBtn').onclick = async () => {
+  const token = $('#token').value.trim();
+  const msg = $('#qMsg');
+  msg.style.display = 'none';
+  if (!token) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请先填管理口令'; return; }
+  try {
+    const r = await fetch('/api/admin/questions?admin_token=' + encodeURIComponent(token));
+    const d = await r.json();
+    msg.style.display = 'block';
+    if (!r.ok) { msg.className='msg err'; msg.textContent = '失败：' + (d.error||'未知错误'); return; }
+    let txt = '共收到 ' + d.total + ' 条提问。\n\n【高频重复 TOP】\n' +
+      (d.top.length ? d.top.map((x,i)=>(i+1)+'. '+(x.n)+' 次 — '+x.q).join('\n') : '（暂无）') +
+      '\n\n【最近提问】\n' +
+      (d.recent.length ? d.recent.map(x=>('['+x.type+'] '+x.q)).join('\n') : '（暂无）');
+    msg.className='msg ok';
+    msg.style.whiteSpace='pre-wrap';
+    msg.textContent = txt;
   } catch(e) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请求出错：'+e.message; }
 };
 </script>

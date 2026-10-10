@@ -143,6 +143,28 @@ async function loadPains() {
   } catch (e) {}
   renderExamples();
 }
+// 拉取服务端痛点点击权重（用于自动加权）
+let PAIN_WEIGHTS = {};
+async function loadPainWeights() {
+  try {
+    const r = await fetch('/api/pain-weights');
+    if (r.ok) { const d = await r.json(); if (d.weights) PAIN_WEIGHTS = d.weights; }
+  } catch (e) {}
+  renderExamples();
+}
+// 按累计点击次数加权抽样：点得越多的示例被抽中概率越高
+function weightedSample(arr, k) {
+  const pool = arr.slice();
+  const out = [];
+  while (out.length < k && pool.length) {
+    const w = pool.map(it => (PAIN_WEIGHTS[it.q] || 0) + 1);
+    const total = w.reduce((a, b) => a + b, 0);
+    let r = Math.random() * total, idx = 0;
+    for (; idx < pool.length - 1; idx++) { r -= w[idx]; if (r <= 0) break; }
+    out.push(pool[idx]); pool.splice(idx, 1);
+  }
+  return out;
+}
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -176,7 +198,7 @@ function renderExamples() {
   const wrap = $('#exWrap');
   if (!wrap) return;
   wrap.innerHTML = '';
-  shuffle(PAIN_POOL).slice(0, 6).forEach(item => {
+  weightedSample(PAIN_POOL, 6).forEach(item => {
     const s = document.createElement('span');
     s.textContent = item.label;
     s.onclick = () => { recordPainHit(item.q); sendPainHit(item.q); $('#question').value = item.q; $('#question').focus(); };
@@ -191,4 +213,5 @@ setInterval(() => { if (!$('#question').value.trim()) renderExamples(); }, 12000
 loadPersons();
 renderExamples();   // 先用兜底池渲染，避免空白
 loadPains();        // 拉取 /pains.json 后自动重渲染
+loadPainWeights();  // 拉取服务端点击权重后自动重渲染
 if (location.search.indexOf('stats') !== -1) showPainStats();

@@ -51,7 +51,7 @@ loadSkillsMeta().skills.forEach(s => { if (s.name) DISPLAY[s.name] = s.display_n
 
 // ——— 服务端额度存储（零依赖，落盘到 data/store.json）———
 const STORE_PATH = path.join(ROOT, 'data', 'store.json');
-let store = (() => { try { return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8')); } catch (e) { return { users: {}, pains: {} }; } })();
+let store = (() => { try { return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8')); } catch (e) { return { users: {}, pains: {}, questions: [] }; } })();
 function saveStore() { try { fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true }); fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2)); } catch (e) {} }
 function ensureUser(uid) { if (!uid) return null; if (!store.users[uid]) store.users[uid] = { used: 0, bonus: 0 }; return store.users[uid]; }
 function remaining(uid) { const u = ensureUser(uid); if (!u) return 0; return Math.max(0, FREE_QUOTA - u.used) + (u.bonus || 0); }
@@ -69,6 +69,13 @@ function refund(uid, type) {
 }
 function addBonus(uid, n) { const u = ensureUser(uid); if (!u) return; u.bonus = (u.bonus || 0) + n; saveStore(); }
 function recordPainHit(q) { if (!q) return; store.pains[q] = (store.pains[q] || 0) + 1; saveStore(); }
+// 记录用户实际提问（示例点击或自填都算），供后台做内容选题分析
+function recordQuestion(uid, q, type, meta) {
+  if (!q) return;
+  store.questions.push({ q, uid: uid || '', type, meta: meta || '', ts: Date.now() });
+  if (store.questions.length > 2000) store.questions = store.questions.slice(-2000);
+  saveStore();
+}
 
 // ——— LLM（OpenAI 兼容，核心 https，无第三方依赖）———
 function callLLM(system, question, maxTokens) {
@@ -183,6 +190,23 @@ const server = http.createServer(async (req, res) => {
       return sendJSON(res, 200, { rows });
     }
 
+    // 供前端做「热点自动加权」：返回各示例累计点击次数（无需口令）
+    if (p === '/api/pain-weights' && req.method === 'GET') {
+      return sendJSON(res, 200, { weights: store.pains || {} });
+    }
+
+    // 后台查看「用户真实提问」大数据（需口令）：含高频重复排名 + 最近记录
+    if (p === '/api/admin/questions' && req.method === 'GET') {
+      const tk = u.searchParams.get('admin_token') || '';
+      if (tk !== ADMIN_TOKEN) return sendJSON(res, 403, { error: 'forbidden' });
+      const all = store.questions || [];
+      const counts = {};
+      all.forEach(x => { counts[x.q] = (counts[x.q] || 0) + 1; });
+      const top = Object.entries(counts).map(([q, n]) => ({ q, n })).sort((a, b) => b.n - a.n).slice(0, 30);
+      const recent = all.slice(-50).reverse().map(x => ({ q: x.q, type: x.type, ts: x.ts }));
+      return sendJSON(res, 200, { total: all.length, top, recent });
+    }
+
     if (p === '/api/ask' && req.method === 'POST') {
       const body = JSON.parse(await readBody(req) || '{}');
       const uid = body.uid || '';
@@ -195,6 +219,7 @@ const server = http.createServer(async (req, res) => {
       const ct = consume(uid);
       if (!ct) return sendJSON(res, 402, { error: 'QUOTA_EXCEEDED', remaining: 0 });
       try {
+        recordQuestion(uid, question, 'single', person);
         let ans = await callLLM(text, question, 1400);
         if (ans === null) ans = `[演示模式 · 未配置 LLM]\n\n以 ${DISPLAY[person] || person} 的视角，关于「${question}」：\n这是示例回答。配置 OPENAI_ENDPOINT / OPENAI_API_KEY 后将返回真实回答。`;
         return sendJSON(res, 200, { person, display_name: DISPLAY[person] || person, answer: ans, remaining: remaining(uid) });
@@ -215,6 +240,7 @@ const server = http.createServer(async (req, res) => {
       const ct = consume(uid);
       if (!ct) return sendJSON(res, 402, { error: 'QUOTA_EXCEEDED', remaining: 0 });
       try {
+        recordQuestion(uid, question, 'compare', persons.join(','));
         const answers = {};
         await Promise.all(persons.map(async (person) => {
           const t = skillText(person);
