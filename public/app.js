@@ -127,25 +127,22 @@ function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;'
 $('#askBtn').onclick = ask;
 $('#closePay').onclick = () => $('#payMask').hidden = true;
 
-// ——— 痛点问题池（常问高频问题，随机抽取展示）———
-const PAIN_POOL = [
+// ——— 痛点问题池（从 /pains.json 动态加载，方便运营随时改文案；此处为兜底）———
+let PAIN_POOL = [
   { label: '负债 30 万怎么翻身', q: '我背了 30 万负债，每月工资一到手就还债，看不到头。我该怎么规划，才能真正翻身？' },
   { label: '月薪 8 千该辞职吗', q: '我月薪 8 千，工作稳定但一眼望到头，心里一直有个想做的事。我该不该辞职去追？' },
   { label: '35 岁被裁怎么办', q: '我 35 岁刚被裁员，投了几十份简历没回音。是继续找工作，还是趁这个机会做点自己的事？' },
   { label: '存款为零还有救吗', q: '工作五六年存款为零，月薪不高花得不少。我想开始攒钱和搞副业，第一步该怎么做？' },
   { label: '该不该离婚', q: '这段婚姻让我很消耗，但孩子和现实让我不敢轻易决定。我到底该不该离？' },
   { label: '要不要回小城市', q: '在大城市漂着累但机会多，回小城市舒服但怕废掉。我该怎么选？' },
-  { label: '首付凑不齐买房吗', q: '我和对象工作几年，首付还差一截。现在到底该不该咬牙买房？' },
-  { label: '副业值不值得做', q: '我下班做副业月入一两千，很累但能多攒点。要不要继续投入时间？' },
-  { label: '被领导打压忍吗', q: '我在公司被领导针对、穿小鞋，活不好干。该忍、该走、还是该争？' },
-  { label: '考研还是工作', q: '我大三，家里让考研，我自己想早点赚钱。我该怎么选？' },
-  { label: '异地恋要不要分', q: '我和对象异地两年，感情还在但很消耗。要不要结束这段关系？' },
-  { label: '创业亏 20 万回本', q: '我去年创业亏了 20 万，现在进退两难。怎么把坑填回来？' },
-  { label: '父母催婚怎么顶', q: '我 28 了，父母天天催婚，我不想将就。怎么跟家里沟通？' },
-  { label: '身体垮了拼还是躺', q: '我熬夜加班身体出了毛病，但害怕停下来没收入。该拼还是该躺？' },
-  { label: '朋友借钱不还咋办', q: '一个好朋友欠我几万一直拖。要不要撕破脸要回来？' },
-  { label: '孩子留学值不值', q: '孩子快上高中，纠结要不要送出去留学，费用高但想给他更好出路。' },
 ];
+async function loadPains() {
+  try {
+    const r = await fetch('/pains.json');
+    if (r.ok) { const arr = await r.json(); if (Array.isArray(arr) && arr.length) PAIN_POOL = arr; }
+  } catch (e) {}
+  renderExamples();
+}
 
 function shuffle(arr) {
   const a = arr.slice();
@@ -170,3 +167,5 @@ $('#reshuffle').onclick = renderExamples;
 setInterval(() => { if (!$('#question').value.trim()) renderExamples(); }, 12000);
 
 loadPersons();
+renderExamples();   // 先用兜底池渲染，避免空白
+loadPains();        // 拉取 /pains.json 后自动重渲染
