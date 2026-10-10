@@ -48,8 +48,10 @@
 
 <p class="tip">入口：https://你的域名.onrender.com/admin.html（URL 不公开，且必须口令正确才能改数据，外人进不来）。</p>
 
+<script src="/config.js"></script>
 <script>
 const $ = s => document.querySelector(s);
+const API = window.API_BASE || '';
 $('#go').onclick = async () => {
   const token = $('#token').value.trim();
   const uid = $('#uid').value.trim();
@@ -58,7 +60,7 @@ $('#go').onclick = async () => {
   msg.style.display = 'none';
   if (!token || !uid) { msg.className='msg err'; msg.style.display='block'; msg.textContent='口令和用户ID都要填'; return; }
   try {
-    const r = await fetch('/api/admin/unlock', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ admin_token: token, uid, pkg }) });
+    const r = await fetch(API + '/api/admin/unlock', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ admin_token: token, uid, pkg }) });
     const d = await r.json();
     msg.style.display = 'block';
     if (r.ok) { msg.className='msg ok'; msg.textContent = '解锁成功！该用户剩余次数：' + d.remaining + '（已加 ' + d.added + ' 次）'; }
@@ -72,7 +74,7 @@ $('#statsBtn').onclick = async () => {
   msg.style.display = 'none';
   if (!token) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请先填管理口令'; return; }
   try {
-    const r = await fetch('/api/admin/pain-stats?admin_token=' + encodeURIComponent(token));
+    const r = await fetch(API + '/api/admin/pain-stats?admin_token=' + encodeURIComponent(token));
     const d = await r.json();
     msg.style.display = 'block';
     if (!r.ok) { msg.className='msg err'; msg.textContent = '失败：' + (d.error||'未知错误'); return; }
@@ -89,7 +91,7 @@ $('#qBtn').onclick = async () => {
   msg.style.display = 'none';
   if (!token) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请先填管理口令'; return; }
   try {
-    const r = await fetch('/api/admin/questions?admin_token=' + encodeURIComponent(token));
+    const r = await fetch(API + '/api/admin/questions?admin_token=' + encodeURIComponent(token));
     const d = await r.json();
     msg.style.display = 'block';
     if (!r.ok) { msg.className='msg err'; msg.textContent = '失败：' + (d.error||'未知错误'); return; }

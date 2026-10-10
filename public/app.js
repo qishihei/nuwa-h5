@@ -1,4 +1,5 @@
 // 思想会客厅 H5 前端逻辑（服务端额度版）
+const API = window.API_BASE || '';
 const FREE_QUOTA = 3;
 const PKGS = [
   { id: 'lite', name: '轻会员', price: 9.9, quota: 3 },
@@ -40,7 +41,7 @@ function uid() {
 }
 
 async function refreshQuota() {
-  const r = await fetch('/api/me?uid=' + uid());
+  const r = await fetch(API + '/api/me?uid=' + uid());
   const d = await r.json();
   state.pkgs = d.pkgs || state.pkgs;
   quotaBar.textContent = '剩余次数：' + (d.remaining === undefined ? '…' : d.remaining);
@@ -48,7 +49,7 @@ async function refreshQuota() {
 }
 
 async function loadPersons() {
-  const r = await fetch('/api/persons');
+  const r = await fetch(API + '/api/persons');
   const d = await r.json();
   state.persons = d.persons || [];
   personsEl.innerHTML = '';
@@ -96,13 +97,13 @@ async function ask() {
   try {
     let d;
     if (state.selected.size === 1) {
-      const r = await fetch('/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), person: [...state.selected][0], question: q }) });
+      const r = await fetch(API + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), person: [...state.selected][0], question: q }) });
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
       resultsEl.innerHTML = card(d.display_name, d.answer);
     } else {
-      const r = await fetch('/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), persons: [...state.selected], question: q }) });
+      const r = await fetch(API + '/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), persons: [...state.selected], question: q }) });
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
@@ -147,7 +148,7 @@ async function loadPains() {
 let PAIN_WEIGHTS = {};
 async function loadPainWeights() {
   try {
-    const r = await fetch('/api/pain-weights');
+    const r = await fetch(API + '/api/pain-weights');
     if (r.ok) { const d = await r.json(); if (d.weights) PAIN_WEIGHTS = d.weights; }
   } catch (e) {}
   renderExamples();
@@ -182,7 +183,7 @@ function recordPainHit(q) {
 }
 // 同时上报到服务端（用于后台聚合真实用户热度）
 function sendPainHit(q) {
-  try { fetch('/api/pain-hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q }) }); } catch (e) {}
+  try { fetch(API + '/api/pain-hit', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ q }) }); } catch (e) {}
 }
 function showPainStats() {
   try {
