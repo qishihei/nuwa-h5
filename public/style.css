@@ -46,6 +46,10 @@ textarea:focus { outline: none; border-color: #2b2118; }
 .ghost { width: 100%; margin-top: 14px; border: 1.5px solid #2b2118; background: #fff; color: #2b2118; border-radius: 10px; padding: 11px; font-size: 14px; cursor: pointer; }
 .close { width: 100%; margin-top: 8px; border: none; background: none; color: #9b8f7d; padding: 8px; font-size: 13px; cursor: pointer; }
 .toast { position: fixed; bottom: 30px; left: 50%; transform: translateX(-50%); background: rgba(0,0,0,.82); color: #fff; padding: 10px 18px; border-radius: 22px; font-size: 14px; z-index: 99; }
+.ex-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.ex-head .lbl { margin-bottom: 0; }
+.reshuffle { font-size: 12px; color: #2b2118; background: #efe7d8; border-radius: 12px; padding: 3px 10px; cursor: pointer; user-select: none; }
+.reshuffle:active { background: #2b2118; color: #f3e9d8; }
 .ex { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 8px; }
 .ex span {
   font-size: 12px; color: #6b5d4a; background: #f0ebe0; border-radius: 14px;
