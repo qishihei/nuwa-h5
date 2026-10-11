@@ -104,3 +104,9 @@ textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px
   padding: 5px 11px; cursor: pointer; user-select: none; transition: .15s;
 }
 .ex span:active { background: var(--brand1); color: #f3e9d8; }
+/* —— 用户画像 —— */
+.pf-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 8px; }
+.pf-in { width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 9px 10px; font-size: 14px; font-family: inherit; background: #faf7f1; color: var(--ink); }
+.pf-in:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,161,74,.12); }
+.pf-status { display: block; font-size: 12px; margin-top: 8px; min-height: 16px; }
+.pf-badge { font-size: 11px; color: #6b8a5b; background: #eef5e9; border-radius: 10px; padding: 2px 8px; margin-left: 8px; font-weight: 600; }

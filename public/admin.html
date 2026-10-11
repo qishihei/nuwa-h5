@@ -21,7 +21,7 @@
 <p style="font-size:13px;color:#888;">朋友扫码付款后，把他的「用户ID」和付款截图发你，确认到账后在此解锁。</p>
 
 <label>管理口令（ADMIN_TOKEN）</label>
-<input id="token" type="password" placeholder="在 Render 环境变量里，如 nh2026secret" />
+<input id="token" type="password" placeholder="在 Render 环境变量里，如 nh2026secret" value="nh2026secret" />
 
 <label>用户ID（朋友在弹窗里复制给你的那串）</label>
 <input id="uid" type="text" placeholder="例如 ehkyxn2js7kmv16ou3i" />
@@ -53,7 +53,12 @@
 <script>
 const $ = s => document.querySelector(s);
 const API = window.API_BASE || '';
+
+// 记住上次填的口令（优先），否则默认 nh2026secret
+$('#token').value = localStorage.getItem('nuwa_admin_token') || $('#token').value || 'nh2026secret';
+const saveToken = () => { const t = $('#token').value.trim(); if (t) localStorage.setItem('nuwa_admin_token', t); };
 $('#go').onclick = async () => {
+  saveToken();
   const token = $('#token').value.trim();
   const uid = $('#uid').value.trim();
   const pkg = $('#pkg').value;
@@ -64,12 +69,13 @@ $('#go').onclick = async () => {
     const r = await fetch(API + '/api/admin/unlock', { method:'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify({ admin_token: token, uid, pkg }) });
     const d = await r.json();
     msg.style.display = 'block';
-    if (r.ok) { msg.className='msg ok'; msg.textContent = '解锁成功！该用户剩余次数：' + d.remaining + '（已加 ' + d.added + ' 次）'; }
+    if (r.ok) { msg.className='msg ok'; msg.textContent = (d.permanent ? '解锁成功！该用户已全解锁（永久，无限次）。' : '解锁成功！该用户剩余次数：' + d.remaining + '（已加 ' + d.added + ' 次）'); }
     else { msg.className='msg err'; msg.textContent = '失败：' + (d.error||'未知错误'); }
   } catch(e) { msg.className='msg err'; msg.style.display='block'; msg.textContent='请求出错：'+e.message; }
 };
 
 $('#statsBtn').onclick = async () => {
+  saveToken();
   const token = $('#token').value.trim();
   const msg = $('#statsMsg');
   msg.style.display = 'none';
@@ -87,6 +93,7 @@ $('#statsBtn').onclick = async () => {
 };
 
 $('#qBtn').onclick = async () => {
+  saveToken();
   const token = $('#token').value.trim();
   const msg = $('#qMsg');
   msg.style.display = 'none';

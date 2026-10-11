@@ -20,6 +20,19 @@
   </header>
 
   <main>
+    <section class="block" id="profileBlock">
+      <label class="lbl">Tell us about yourself<span class="pf-badge" id="pfBadge" hidden>saved</span></label>
+      <div class="pf-grid">
+        <select id="pfGender" class="pf-in"><option value=""></option><option>Male</option><option>Female</option><option>Prefer not to say</option></select>
+        <input id="pfAge" class="pf-in" type="number" inputmode="numeric" placeholder="Age" />
+        <input id="pfJob" class="pf-in" type="text" placeholder="Occupation" />
+        <input id="pfHobby" class="pf-in" type="text" placeholder="Interests" />
+        <input id="pfSkill" class="pf-in" type="text" placeholder="Strengths (optional)" />
+      </div>
+      <textarea id="pfMore" rows="2" placeholder="Anything else (optional): your situation, goals…"></textarea>
+      <button id="pfSave" class="ghost">Save my profile</button>
+      <small class="pf-status" id="pfStatus"></small>
+    </section>
     <section class="block">
       <label class="lbl">① Choose one or more "masters" (pick several to compare)</label>
       <div class="persons" id="persons"><div class="loading">loading…</div></div>

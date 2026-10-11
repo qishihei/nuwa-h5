@@ -13,7 +13,7 @@ async function loadPkgs() {
   sel.innerHTML = '';
   (d.pkgs || []).forEach(pk => {
     const o = document.createElement('option');
-    o.value = pk.id; o.textContent = `${pk.name}（¥${pk.price} / ${pk.quota}次）`;
+    o.value = pk.id; o.textContent = pk.permanent ? `${pk.name}（¥${pk.price} / 永久）` : `${pk.name}（¥${pk.price} / ${pk.quota}次）`;
     sel.appendChild(o);
   });
 }
@@ -23,7 +23,7 @@ $('#queryBtn').onclick = async () => {
   if (!uid) return toast('请输入用户 uid');
   const r = await fetch('/api/me?uid=' + encodeURIComponent(uid));
   const d = await r.json();
-  $('#qResult').textContent = d.error ? ('错误：' + d.error) : (`当前剩余次数：${d.remaining}（免费已用 ${d.free_used}，已购 ${d.bonus}）`);
+  $('#qResult').textContent = d.error ? ('错误：' + d.error) : (d.permanent ? '该用户已全解锁（永久，无限次）' : `当前剩余次数：${d.remaining}（免费已用 ${d.free_used}，已购 ${d.bonus}）`);
 };
 
 $('#unlockBtn').onclick = async () => {
@@ -39,7 +39,7 @@ $('#unlockBtn').onclick = async () => {
   });
   const d = await r.json();
   if (d.error) { $('#uResult').textContent = '失败：' + d.error; return; }
-  $('#uResult').textContent = `已解锁，增加 ${d.added} 次，当前剩余 ${d.remaining} 次。`;
+  $('#uResult').textContent = d.permanent ? '已全解锁（永久，无限次）。' : `已解锁，增加 ${d.added} 次，当前剩余 ${d.remaining} 次。`;
   toast('解锁成功');
 };
 
