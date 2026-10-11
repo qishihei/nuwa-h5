@@ -1,0 +1,13 @@
+{
+  "name": "思想会客厅 · 天赋探索",
+  "short_name": "思想会客厅",
+  "description": "让 25 位顶尖思想家，用他们的认知框架帮你思考。",
+  "start_url": ".",
+  "display": "standalone",
+  "background_color": "#f6f3ee",
+  "theme_color": "#2b2118",
+  "icons": [
+    { "src": "/icon.png", "type": "image/png", "sizes": "512x512" },
+    { "src": "/icon.svg", "type": "image/svg+xml", "sizes": "any" }
+  ]
+}

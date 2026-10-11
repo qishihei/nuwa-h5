@@ -1,0 +1,12 @@
+{
+  "name": "director-salon",
+  "version": "1.0.0",
+  "description": "导演大师会客厅 · 用百年电影大师的视角帮你思考",
+  "private": true,
+  "scripts": {
+    "start": "node server.js"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}

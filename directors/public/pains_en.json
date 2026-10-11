@@ -1,0 +1,20 @@
+[
+  { "label": "¥300k in debt, how to recover", "q": "I'm 300k in debt. My salary goes straight to payments every month and I can't see the end. How should I plan to actually turn it around?" },
+  { "label": "Quit my stable job?", "q": "I make 8k a month, stable but I see the rest of my life from here. There's something I've always wanted to do. Should I quit to chase it?" },
+  { "label": "Laid off at 35", "q": "I was just laid off at 35. Sent out dozens of resumes with no reply. Keep hunting, or use this moment to build something of my own?" },
+  { "label": "Zero savings, any hope?", "q": "Five years into work with zero savings, low pay and high spending. I want to start saving and a side hustle — what's step one?" },
+  { "label": "Should I get a divorce?", "q": "This marriage is draining me, but the kids and practicalities scare me from deciding. Should I actually leave?" },
+  { "label": "Move back to a small city?", "q": "Big city is exhausting but full of opportunity; small city is comfortable but I fear wasting myself. How do I choose?" },
+  { "label": "Can't afford a down payment", "q": "My partner and I have worked a few years, still short on a down payment. Should we grit our teeth and buy now?" },
+  { "label": "Is the side hustle worth it?", "q": "My side hustle brings in 1–2k a month after work. Tiring but it saves more. Should I keep investing time?" },
+  { "label": "Boss is undermining me", "q": "My boss targets me at work, sets me up to fail. Should I endure, leave, or fight back?" },
+  { "label": "Grad school or work?", "q": "I'm a junior; my family wants me to do a master's, I'd rather earn money now. How do I choose?" },
+  { "label": "Long-distance relationship", "q": "My partner and I have been long-distance for two years. Still love, but it's draining. End it or not?" },
+  { "label": "Lost 200k on a startup", "q": "I lost 200k on a startup last year, now stuck. How do I climb out of the hole?" },
+  { "label": "Parents push me to marry", "q": "I'm 28, parents nag about marriage daily, I don't want to settle. How do I talk to them?" },
+  { "label": "Health broke, push or rest?", "q": "I burnt out from overtime, health issues, but scared to stop and lose income. Push or rest?" },
+  { "label": "Friend won't repay", "q": "A good friend owes me tens of thousands and keeps delaying. Burn the bridge to get it back?" },
+  { "label": "Worth sending kid abroad?", "q": "Kid's near high school; torn on sending them abroad — expensive but better path?" },
+  { "label": "In debt, how do I think?", "q": "I'm in debt and want to recover. How should I think first, what's step one, and the easiest mistake to make? Use a thinking framework, not just platitudes." },
+  { "label": "How to get back on track", "q": "Drowning in debt, crushed by payments every day. Is there a sound approach to get back on track? I'm afraid of panic moves." }
+]
