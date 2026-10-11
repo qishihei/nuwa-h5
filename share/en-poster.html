@@ -1,72 +1,49 @@
 <!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="UTF-8">
-<style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body { font-family: -apple-system, "Helvetica Neue", Arial, sans-serif; background: #2b2118; }
-  #poster {
-    width: 750px; height: 1440px; position: relative; overflow: hidden;
-    background: linear-gradient(160deg, #2b2118 0%, #4a3826 55%, #2b2118 100%);
-    color: #f3e9d8; display: flex; flex-direction: column; align-items: center;
-    padding: 70px 60px 0;
-  }
-  #poster::before {
-    content: ""; position: absolute; right: -120px; top: -120px; width: 420px; height: 420px;
-    background: radial-gradient(circle, rgba(201,161,74,.28), transparent 70%); border-radius: 50%;
-  }
-  #poster::after {
-    content: ""; position: absolute; left: -140px; bottom: 140px; width: 380px; height: 380px;
-    background: radial-gradient(circle, rgba(192,86,59,.18), transparent 70%); border-radius: 50%;
-  }
-  .logo {
-    width: 96px; height: 96px; border-radius: 24px; display: flex; align-items: center; justify-content: center;
-    background: linear-gradient(135deg, #e9c46a, #c0563b); color: #2b2118;
-    font-size: 54px; font-weight: 800; box-shadow: 0 12px 32px rgba(0,0,0,.35); z-index: 1;
-  }
-  h1 { font-size: 60px; letter-spacing: 2px; margin-top: 36px; font-weight: 700; z-index: 1; text-align: center; }
-  .tagline { font-size: 24px; opacity: .85; margin-top: 20px; letter-spacing: 1px; z-index: 1; white-space: nowrap; }
-  .masters {
-    margin-top: 40px; font-size: 24px; line-height: 2; text-align: center; opacity: .92; z-index: 1;
-  }
-  .masters b { color: #e9c46a; font-weight: 700; }
-  .points { margin-top: 32px; z-index: 1; }
-  .points div {
-    font-size: 24px; margin-bottom: 14px; padding-left: 34px; position: relative; opacity: .95;
-  }
-  .points div::before { content: "✦"; position: absolute; left: 0; color: #e9c46a; }
-  .qr-card {
-    margin-top: 40px; background: #faf7f1; border-radius: 28px; padding: 26px;
-    box-shadow: 0 18px 48px rgba(0,0,0,.4); text-align: center; z-index: 1;
-  }
-  .qr-card img { width: 280px; height: 280px; display: block; }
-  .qr-card p { color: #6b5d4a; font-size: 23px; margin-top: 12px; font-weight: 600; }
-  .free {
-    margin-top: 26px; font-size: 26px; color: #e9c46a; letter-spacing: 2px; font-weight: 700; z-index: 1;
-  }
-  .footer { margin-top: auto; padding: 24px 0 46px; font-size: 21px; opacity: .6; letter-spacing: 1px; z-index: 1; }
-</style>
-</head>
-<body>
-<div id="poster">
-  <div class="logo">M</div>
+<html lang=en><head><meta charset=UTF-8><style>
+* { margin:0; padding:0; box-sizing:border-box; }
+body { font-family:-apple-system,"Helvetica Neue",Arial,sans-serif; background:#2b2118; }
+#poster { width:750px; height:1440px; position:relative; overflow:hidden;
+  background:linear-gradient(160deg,#2b2118 0%,#4a3826 55%,#2b2118 100%); color:#f3e9d8;
+  display:flex; flex-direction:column; align-items:center; padding:70px 60px 0; }
+#poster::before { content:""; position:absolute; right:-120px; top:-120px; width:420px; height:420px;
+  background:radial-gradient(circle,rgba(201,161,74,.28),transparent 70%); border-radius:50%; }
+#poster::after { content:""; position:absolute; left:-140px; bottom:140px; width:380px; height:380px;
+  background:radial-gradient(circle,rgba(192,86,59,.18),transparent 70%); border-radius:50%; }
+.logo { width:96px; height:96px; border-radius:24px; display:flex; align-items:center; justify-content:center;
+  background:linear-gradient(135deg,#e9c46a,#c0563b); color:#2b2118; font-size:54px; font-weight:800;
+  box-shadow:0 12px 32px rgba(0,0,0,.35); z-index:1; }
+h1 { font-size:60px; letter-spacing:2px; margin-top:36px; font-weight:700; z-index:1; text-align:center; }
+.tagline { font-size:24px; opacity:.85; margin-top:20px; letter-spacing:1px; z-index:1; white-space:nowrap; }
+.masters { margin-top:40px; font-size:24px; line-height:2; text-align:center; opacity:.92; z-index:1; }
+.masters b { color:#e9c46a; font-weight:700; }
+.points { margin-top:32px; z-index:1; }
+.points div { font-size:24px; margin-bottom:14px; padding-left:34px; position:relative; opacity:.95; }
+.points div::before { content:"✦"; position:absolute; left:0; color:#e9c46a; }
+.qr-card { margin-top:40px; background:#faf7f1; border-radius:28px; padding:26px;
+  box-shadow:0 18px 48px rgba(0,0,0,.4); text-align:center; z-index:1; }
+.qr-card img { width:280px; height:280px; display:block; }
+.qr-card p { color:#6b5d4a; font-size:23px; margin-top:12px; font-weight:600; }
+.free { margin-top:26px; font-size:26px; color:#e9c46a; letter-spacing:2px; font-weight:700; z-index:1; }
+.footer { margin-top:auto; padding:24px 0 46px; font-size:21px; opacity:.6; letter-spacing:1px; z-index:1; }
+</style></head><body>
+<div id=poster>
+  <div class=logo>M</div>
   <h1>The Salon of Minds</h1>
-  <div class="tagline">25 great thinkers, each lending you their mental models</div>
-  <div class="masters">
+  <div class=tagline>25 great thinkers, each lending you their mental models</div>
+  <div class=masters>
     <b>Charlie Munger</b> · <b>Steve Jobs</b> · <b>Richard Feynman</b> · <b>Naval</b> · <b>Wang Yangming</b> · <b>Inamori</b><br>
     Buffett · Dalio · Nietzsche · Laozi · Sun Tzu · Taleb · Keynes …
   </div>
-  <div class="points">
+  <div class=points>
     <div>Debt, quitting, marriage, the 35-year-old crisis — name your knot</div>
     <div>Multiple masters answer at once, perspectives in collision</div>
     <div>Not platitudes — actionable thinking frameworks</div>
   </div>
-  <div class="qr-card">
-    <img src="en-link-qr.png" alt="qr">
+  <div class=qr-card>
+    <img src="data:image/png;base64,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" alt="qr">
     <p>Scan to enter · English version</p>
   </div>
-  <div class="free">3 free uses</div>
-  <div class="footer">WeChat: fuping394319746</div>
+  <div class=free>3 free uses</div>
+  <div class=footer>WeChat: fuping394319746</div>
 </div>
-</body>
-</html>
+</body></html>
