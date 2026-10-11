@@ -148,9 +148,44 @@ async function ask() {
 }
 
 function card(name, ans, isAnalysis) {
-  return '<div class="card' + (isAnalysis ? ' analysis' : '') + '"><h4>' + name + '</h4><div class="ans">' + escapeHtml(ans) + '</div></div>';
+  return '<div class="card' + (isAnalysis ? ' analysis' : '') + '"><h4>' + name + '</h4><div class="ans">' + mdToHtml(ans) + '</div></div>';
 }
 function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
+
+// 轻量 Markdown → HTML（先转义防 XSS，再套样式），支持 标题/加粗/斜体/列表/引用/分割线/行内代码
+function inlineMd(s) {
+  return s
+    .replace(/\*\*([^*]+)\*\*/g, '<strong>$1</strong>')
+    .replace(/__([^_]+)__/g, '<strong>$1</strong>')
+    .replace(/(^|[^*])\*([^*\n]+)\*/g, '$1<em>$2</em>')
+    .replace(/`([^`]+)`/g, '<code>$1</code>');
+}
+function mdToHtml(md) {
+  const lines = escapeHtml(md || '').split(/\r?\n/);
+  let html = '', i = 0, inUl = false, inOl = false;
+  const closeLists = () => { if (inUl) { html += '</ul>'; inUl = false; } if (inOl) { html += '</ol>'; inOl = false; } };
+  const isHead = l => /^(#{1,4})\s+/.test(l);
+  const isUl = l => /^[-*]\s+/.test(l);
+  const isOl = l => /^\d+\.\s+/.test(l);
+  const isQuote = l => /^>\s?/.test(l);
+  const isHr = l => /^(-{3,}|\*{3,})\s*$/.test(l);
+  while (i < lines.length) {
+    const line = lines[i];
+    let m;
+    if ((m = line.match(/^(#{1,4})\s+(.*)$/))) { closeLists(); const lv = m[1].length; html += `<h${lv}>${inlineMd(m[2])}</h${lv}>`; i++; continue; }
+    if (isHr(line)) { closeLists(); html += '<hr>'; i++; continue; }
+    if (isQuote(line)) { closeLists(); let q = ''; while (i < lines.length && isQuote(lines[i])) { q += (q ? '<br>' : '') + lines[i].replace(/^>\s?/, ''); i++; } html += '<blockquote>' + inlineMd(q) + '</blockquote>'; continue; }
+    if (isUl(line)) { if (inOl) { html += '</ol>'; inOl = false; } if (!inUl) { html += '<ul>'; inUl = true; } html += '<li>' + inlineMd(line.replace(/^[-*]\s+/, '')) + '</li>'; i++; continue; }
+    if (isOl(line)) { if (inUl) { html += '</ul>'; inUl = false; } if (!inOl) { html += '<ol>'; inOl = true; } html += '<li>' + inlineMd(line.replace(/^\d+\.\s+/, '')) + '</li>'; i++; continue; }
+    if (/^\s*$/.test(line)) { closeLists(); i++; continue; }
+    closeLists();
+    let para = line; i++;
+    while (i < lines.length && !/^\s*$/.test(lines[i]) && !isHead(lines[i]) && !isUl(lines[i]) && !isOl(lines[i]) && !isQuote(lines[i]) && !isHr(lines[i])) { para += '<br>' + lines[i]; i++; }
+    html += '<p>' + inlineMd(para) + '</p>';
+  }
+  closeLists();
+  return html;
+}
 // 英文版：从 "查理·芒格 Charlie Munger" 这类 display_name 中提取末尾英文部分
 function enNameOf(disp) {
   if (!disp) return disp;
