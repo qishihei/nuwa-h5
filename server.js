@@ -292,7 +292,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/' || p === '/index.html') { serveStatic(res, path.join(PUBLIC, 'index.html')); return; }
     if (p === '/favicon.ico') { res.writeHead(204); res.end(); return; }
 
-    const fp = path.join(PUBLIC, p.replace(/^\//, ''));
+    const fp = path.join(PUBLIC, p.split('?')[0].replace(/^\//, ''));
     if (fs.existsSync(fp) && fs.statSync(fp).isFile()) { serveStatic(res, fp); return; }
 
     res.writeHead(404); res.end('not found');
