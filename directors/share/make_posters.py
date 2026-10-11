@@ -32,13 +32,13 @@ QR = qr_b64(URL)
 CONTENT = {
     'zh': {
         'logo': '导', 'title': '导演大师会客厅',
-        'tagline': '让百年影史百位殿堂级导演，用镜头语言帮你思考',
+        'tagline': '让百年影史百位殿堂级导演，用招牌技法帮你拆解电影创作难题',
         'm1': '黑泽明 · 费里尼 · 希区柯克 · 王家卫 · 宫崎骏 · 塔可夫斯基',
         'm2': '库布里克 · 伯格曼 · 小津安二郎 · 戈达尔 · 李安 · 奉俊昊 …',
         'points': [
-            '困顿、抉择、关系、创作瓶颈——说出你的难题',
-            '多位导演同台，用电影母题给你另一种视角',
-            '不是大道理，是导演看待人生的独特方式',
+            '剧本卡壳、调度混乱、调色廉价、表演僵硬——说出你的创作难题',
+            '多位导演同台，用各自招牌技法给你可落地的思路',
+            '不是泛泛而谈，是能直接用到镜头前的实操框架',
         ],
         'qr_cap': '长按识别二维码，立即体验',
         'free': '免费体验 3 次',
@@ -47,13 +47,13 @@ CONTENT = {
     },
     'en': {
         'logo': 'D', 'title': "The Director's Salon",
-        'tagline': "A century of cinema's master directors, lending you their lens on life",
+        'tagline': "A century of cinema's master directors, solving your film-craft problems through their lenses",
         'm1': 'Kurosawa · Fellini · Hitchcock · Wong Kar-wai · Miyazaki · Tarkovsky',
         'm2': 'Kubrick · Bergman · Ozu · Godard · Ang Lee · Bong Joon-ho …',
         'points': [
-            'Stuck, deciding, relationships, creative block — name your knot',
-            'Multiple directors answer at once, each through their own cinema',
-            'Not advice — a director’s singular way of seeing',
+            'Script stuck, blocking messy, grade looks cheap, actors stiff — name your craft problem',
+            'Multiple directors answer at once, each through their own craft',
+            "Not vague advice — a framework you can put on screen",
         ],
         'qr_cap': 'Scan to enter · English version',
         'free': '3 free uses',

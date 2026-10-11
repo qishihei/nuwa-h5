@@ -119,13 +119,13 @@ function callLLM(system, question, maxTokens) {
     req.end();
   });
 }
-function analyzeCompare(answers, question, profile, maxTokens) {
+function analyzeCompare(answers, question, maxTokens) {
   const sys = ('你是对比分析师。下面给出了多位电影导演对同一问题的框架性回答。'
     + '请用中文提炼，只输出以下结构、不要客套：\n'
     + '## 共识\n各方都认同的核心要点（3 条以内）。\n'
     + '## 分歧\n各方视角的关键差异（2–3 条）。\n'
     + '## 整合建议\n普通人该如何吸收这些视角、形成自己的行动（2–3 条）。');
-  const user = (profile ? profile + '\n\n' : '') + '问题：' + question + '\n\n' + Object.entries(answers)
+  const user = '问题：' + question + '\n\n' + Object.entries(answers)
     .map(([p, a]) => '【' + (DISPLAY[p] || p) + '】\n' + a).join('\n\n');
   return callLLM(sys, user, maxTokens || 900);
 }
@@ -229,7 +229,6 @@ const server = http.createServer(async (req, res) => {
       const uid = body.uid || '';
       const person = body.person;
       const question = (body.question || '').trim();
-      const profile = (body.profile || '').trim();
       if (!uid) return sendJSON(res, 400, { error: '缺少用户标识' });
       const text = directorFramework(person);
       if (!text) return sendJSON(res, 400, { error: '未知导演' });
@@ -238,7 +237,7 @@ const server = http.createServer(async (req, res) => {
       if (!ct) return sendJSON(res, 402, { error: 'QUOTA_EXCEEDED', remaining: 0 });
       try {
         recordQuestion(uid, question, 'single', person);
-        const fullQ = profile ? profile + '\n\n' + question : question;
+        const fullQ = question;
         let ans = await callLLM(text, fullQ, 1400);
         if (ans === null) ans = `[演示模式 · 未配置 LLM]\n\n以 ${DISPLAY[person] || person} 的视角，关于「${question}」：\n这是示例回答。配置 OPENAI_ENDPOINT / OPENAI_API_KEY 后将返回真实回答。`;
         return sendJSON(res, 200, { person, display_name: DISPLAY[person] || person, answer: ans, remaining: remaining(uid) });
@@ -253,7 +252,6 @@ const server = http.createServer(async (req, res) => {
       const uid = body.uid || '';
       const persons = (body.persons || []).filter(Boolean).slice(0, 5);
       const question = (body.question || '').trim();
-      const profile = (body.profile || '').trim();
       if (!uid) return sendJSON(res, 400, { error: '缺少用户标识' });
       if (!persons.length) return sendJSON(res, 400, { error: '请选择至少一位人物' });
       if (!question) return sendJSON(res, 400, { error: '请输入问题' });
@@ -261,7 +259,7 @@ const server = http.createServer(async (req, res) => {
       if (!ct) return sendJSON(res, 402, { error: 'QUOTA_EXCEEDED', remaining: 0 });
       try {
         recordQuestion(uid, question, 'compare', persons.join(','));
-        const fullQ = profile ? profile + '\n\n' + question : question;
+        const fullQ = question;
         const answers = {};
         await Promise.all(persons.map(async (person) => {
           const t = directorFramework(person);
@@ -272,7 +270,7 @@ const server = http.createServer(async (req, res) => {
         }));
         let analysis = '';
         if (CONFIGURED && Object.values(answers).some(Boolean)) {
-          analysis = await analyzeCompare(answers, question, profile).catch(() => '');
+          analysis = await analyzeCompare(answers, question).catch(() => '');
         }
         return sendJSON(res, 200, {
           answers: persons.map(person => ({ person, display_name: DISPLAY[person] || person, answer: answers[person] })),

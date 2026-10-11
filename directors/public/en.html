@@ -15,24 +15,11 @@
 <body>
   <header class="hd">
     <h1>The Directors' Salon</h1>
-    <p class="sub">100+ master filmmakers, looking at your life through their lenses</p>
+    <p class="sub">100+ master filmmakers, solving your film-craft problems through their lenses</p>
     <div class="quota" id="quotaBar">Free uses left: loading…</div>
   </header>
 
   <main>
-    <section class="block" id="profileBlock">
-      <label class="lbl">Tell us about yourself<span class="pf-badge" id="pfBadge" hidden>saved</span></label>
-      <div class="pf-grid">
-        <select id="pfGender" class="pf-in"><option value=""></option><option>Male</option><option>Female</option><option>Prefer not to say</option></select>
-        <input id="pfAge" class="pf-in" type="number" inputmode="numeric" placeholder="Age" />
-        <input id="pfJob" class="pf-in" type="text" placeholder="Occupation" />
-        <input id="pfHobby" class="pf-in" type="text" placeholder="Interests" />
-        <input id="pfSkill" class="pf-in" type="text" placeholder="Strengths (optional)" />
-      </div>
-      <textarea id="pfMore" rows="2" placeholder="Anything else (optional): your situation, goals…"></textarea>
-      <button id="pfSave" class="ghost">Save my profile</button>
-      <small class="pf-status" id="pfStatus"></small>
-    </section>
     <section class="block">
       <label class="lbl">① Choose one or more "directors" (pick several to compare)</label>
       <input id="searchBox" class="pf-in" type="search" placeholder="Search director / country / genre, e.g. Kurosawa, Japan, New Wave" style="width:100%;margin-bottom:8px" />
@@ -41,11 +28,11 @@
 
     <section class="block">
       <div class="ex-head">
-        <label class="lbl">② Describe the problem you're stuck on</label>
+        <label class="lbl">② Describe the film-craft problem you're stuck on</label>
         <span class="reshuffle" id="reshuffle">shuffle ↻</span>
       </div>
       <div class="ex" id="exWrap"></div>
-      <textarea id="question" rows="3" placeholder="Write down what's really weighing on you. E.g.: I'm 30 and want to switch to filmmaking with nothing to show for it — should I take the leap?"></textarea>
+      <textarea id="question" rows="3" placeholder="Describe the film-craft problem you're stuck on. E.g.: My student short has almost no budget — how do I make the blocking feel cinematic?"></textarea>
       <button id="askBtn" class="primary">Ask the directors</button>
     </section>
 

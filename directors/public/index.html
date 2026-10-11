@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
-  <title>导演大师会客厅 · 用大师的镜头看人生</title>
+  <title>导演大师会客厅 · 用大师的技法解电影难题</title>
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="导演会客厅" />
@@ -15,25 +15,11 @@
 <body>
   <header class="hd">
     <h1>导演大师会客厅</h1>
-    <p class="sub">让百年电影史 100+ 位大师，用他们的镜头与母题替你重新审视人生</p>
+    <p class="sub">让百年电影史 100+ 位大师，用他们的招牌技法帮你拆解电影创作难题</p>
     <div class="quota" id="quotaBar">免费次数：加载中…</div>
   </header>
 
   <main>
-    <section class="block" id="profileBlock">
-      <label class="lbl">先简单介绍下你自己<span class="pf-badge" id="pfBadge" hidden>已保存</span></label>
-      <div class="pf-grid">
-        <select id="pfGender" class="pf-in"><option value="">性别</option><option>男</option><option>女</option><option>不愿透露</option></select>
-        <input id="pfAge" class="pf-in" type="number" inputmode="numeric" placeholder="年龄" />
-        <input id="pfJob" class="pf-in" type="text" placeholder="职业" />
-        <input id="pfHobby" class="pf-in" type="text" placeholder="兴趣" />
-        <input id="pfSkill" class="pf-in" type="text" placeholder="特长（选填）" />
-      </div>
-      <textarea id="pfMore" rows="2" placeholder="其他补充（选填）：当前困境、目标等"></textarea>
-      <button id="pfSave" class="ghost">保存我的画像</button>
-      <small class="pf-status" id="pfStatus"></small>
-    </section>
-
     <section class="block">
       <label class="lbl">① 选择一位或多位「导演」（多选将生成对比）</label>
       <input id="searchBox" class="pf-in" type="search" placeholder="搜索导演 / 国家 / 流派，如：黑泽、日本、新浪潮" style="width:100%;margin-bottom:8px" />
@@ -42,11 +28,11 @@
 
     <section class="block">
       <div class="ex-head">
-        <label class="lbl">② 描述你正在纠结的问题</label>
+        <label class="lbl">② 描述你正在卡住的电影创作问题</label>
         <span class="reshuffle" id="reshuffle">换一组 ↻</span>
       </div>
       <div class="ex" id="exWrap"></div>
-      <textarea id="question" rows="3" placeholder="写下真正压在你心上的那件事，例如：想转行做电影，但 30 岁了还一无所有，我该不该赌一把？"></textarea>
+      <textarea id="question" rows="3" placeholder="描述你正在卡住的电影创作问题，例如：毕业短片预算很少，怎么把场面调度拍出电影感？"></textarea>
       <button id="askBtn" class="primary">请导演们看看</button>
     </section>
 

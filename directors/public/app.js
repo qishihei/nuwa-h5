@@ -122,11 +122,6 @@ async function ask() {
   const qRaw = $('#question').value.trim();
   if (state.selected.size === 0) { toast(EN ? 'Select at least one thinker' : '请先选择至少一位大师'); return; }
   if (!qRaw) { toast(EN ? 'Enter your question' : '请输入你的问题'); return; }
-  const profile = getProfileText();
-  if (!profile) {
-    toast(EN ? 'Add your background first for a sharper answer (or just ask).' : '先完善下你的背景，大师回答会更准（也可以直接问）');
-    const pb = document.getElementById('profileBlock'); if (pb) pb.scrollIntoView({ behavior: 'smooth' });
-  }
   const q = EN ? (qRaw + EN_INSTR) : qRaw;
 
   const btn = $('#askBtn');
@@ -136,13 +131,13 @@ async function ask() {
   try {
     let d;
     if (state.selected.size === 1) {
-      const r = await fetch(API + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), person: [...state.selected][0], question: q, profile }) });
+      const r = await fetch(API + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), person: [...state.selected][0], question: q }) });
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
       resultsEl.innerHTML = card(EN ? enNameOf(d.display_name) : d.display_name, d.answer);
     } else {
-      const r = await fetch(API + '/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), persons: [...state.selected], question: q, profile }) });
+      const r = await fetch(API + '/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), persons: [...state.selected], question: q }) });
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
@@ -210,12 +205,14 @@ $('#closePay').onclick = () => $('#payMask').hidden = true;
 
 // ——— 痛点问题池（从 /pains.json 动态加载，方便运营随时改文案；此处为兜底）———
 let PAIN_POOL = [
-  { label: '负债 30 万怎么翻身', q: '我背了 30 万负债，每月工资一到手就还债，看不到头。我该怎么规划，才能真正翻身？' },
-  { label: '月薪 8 千该辞职吗', q: '我月薪 8 千，工作稳定但一眼望到头，心里一直有个想做的事。我该不该辞职去追？' },
-  { label: '35 岁被裁怎么办', q: '我 35 岁刚被裁员，投了几十份简历没回音。是继续找工作，还是趁这个机会做点自己的事？' },
-  { label: '存款为零还有救吗', q: '工作五六年存款为零，月薪不高花得不少。我想开始攒钱和搞副业，第一步该怎么做？' },
-  { label: '该不该离婚', q: '这段婚姻让我很消耗，但孩子和现实让我不敢轻易决定。我到底该不该离？' },
-  { label: '要不要回小城市', q: '在大城市漂着累但机会多，回小城市舒服但怕废掉。我该怎么选？' },
+  { label: '低成本怎么拍出电影感', q: '我是个学生导演，毕业短片预算很少、设备也一般。怎么在有限条件下，用场面调度和镜头把片子拍出电影感？' },
+  { label: '长镜头怎么设计才不乱', q: '我想拍一个一气呵成的长镜头，但机位和演员调度总乱套。有没有一套设计长镜头的方法？' },
+  { label: '剧本第二幕为什么拖沓', q: '我的剧本第一幕和第三幕都还行，就是第二幕又臭又长、节奏全散了。第二幕该怎么改才紧凑？' },
+  { label: '素人怎么演出真情绪', q: '我找了几个素人演主角，但他们一面对镜头就僵硬、念台词像背课文。怎么引导非职业演员演出真实感？' },
+  { label: '调色总显廉价', q: '我拍的素材不错，可一调色就显廉价、每场颜色还接不上。怎么给整部片建立统一的视觉基调？' },
+  { label: '对话戏很闷怎么救', q: '我这场戏基本是两个人坐着聊天，拍出来特别闷、像念稿。怎么用镜头、构图和声音把对话戏拍活？' },
+  { label: '怎么学王家卫的质感', q: '我很喜欢王家卫那种暧昧的光线和疏离情绪。从美术、灯光到运镜，具体可以从哪些技术点入手去靠近这种质感？' },
+  { label: '手机能拍出质感吗', q: '我没有任何专业设备，只有一台手机。手机到底能不能拍出有质感的短片？关键要注意什么？' },
 ];
 async function loadPains() {
   try {
@@ -299,58 +296,8 @@ loadPains();        // 拉取 /pains.json 后自动重渲染
 loadPainWeights();  // 拉取服务端点击权重后自动重渲染
 if (location.search.indexOf('stats') !== -1) showPainStats();
 
-// ——— 用户画像（让大师的回答更针对你）———
-const PF_FIELDS = ['pfGender', 'pfAge', 'pfJob', 'pfHobby', 'pfSkill', 'pfMore'];
-const PF_KEY = 'nuwa_profile';
-function setupProfile() {
-  const block = document.getElementById('profileBlock');
-  if (!block) return;
-  if (EN) {
-    const bd = document.getElementById('pfBadge'); if (bd) bd.textContent = 'saved';
-    const labels = { pfGender: ['', 'Male', 'Female', 'Prefer not to say'], pfAge: 'Age', pfJob: 'Occupation', pfHobby: 'Interests', pfSkill: 'Strengths (optional)', pfMore: 'Anything else (optional): your situation, goals…' };
-    for (const id in labels) {
-      const e = document.getElementById(id); if (!e) continue;
-      if (id === 'pfGender') e.innerHTML = labels[id].map(o => '<option>' + o + '</option>').join('');
-      else e.placeholder = labels[id];
-    }
-  }
-  try {
-    const saved = JSON.parse(localStorage.getItem(PF_KEY) || 'null');
-    if (saved) {
-      PF_FIELDS.forEach(id => { const e = document.getElementById(id); if (e && saved[id] != null) e.value = saved[id]; });
-      const badge = document.getElementById('pfBadge'); if (badge) badge.hidden = false;
-    }
-  } catch (e) {}
-  const statusEl = document.getElementById('pfStatus');
-  document.getElementById('pfSave').onclick = () => {
-    const data = {};
-    PF_FIELDS.forEach(id => { const e = document.getElementById(id); if (e) data[id] = e.value.trim(); });
-    if (!PF_FIELDS.some(id => data[id])) {
-      statusEl.textContent = EN ? 'Nothing entered yet.' : '还没填任何内容哦';
-      statusEl.style.color = '#b00020'; return;
-    }
-    try { localStorage.setItem(PF_KEY, JSON.stringify(data)); } catch (e) {}
-    const badge = document.getElementById('pfBadge'); if (badge) badge.hidden = false;
-    statusEl.textContent = EN ? '✓ Profile saved' : '✓ 画像已保存';
-    statusEl.style.color = '#6b8a5b';
-  };
-}
-function getProfileText() {
-  let data;
-  try { data = JSON.parse(localStorage.getItem(PF_KEY) || 'null'); } catch (e) {}
-  if (!data) return '';
-  const labels = EN
-    ? { pfGender: 'Gender', pfAge: 'Age', pfJob: 'Occupation', pfHobby: 'Interests', pfSkill: 'Strengths', pfMore: 'Note' }
-    : { pfGender: '性别', pfAge: '年龄', pfJob: '职业', pfHobby: '兴趣', pfSkill: '特长', pfMore: '补充' };
-  const lines = [];
-  PF_FIELDS.forEach(id => { if (data[id]) lines.push((labels[id] || id) + (EN ? ': ' : '：') + data[id]); });
-  if (!lines.length) return '';
-  return (EN ? '[User Background]\n' : '【用户背景】\n') + lines.join('\n');
-}
-
 // 注入作者微信号（来自 config.js，避免硬编码写死在 HTML）
 (function () {
   const wx = document.getElementById('authorWx');
   if (wx && window.AUTHOR_WECHAT) wx.textContent = window.AUTHOR_WECHAT;
 })();
-setupProfile();
