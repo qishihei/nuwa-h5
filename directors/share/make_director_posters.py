@@ -46,6 +46,16 @@ def center(d, text, y, fnt, fill, spacing=0, cx=W//2):
     else:
         w = d.textlength(text, font=fnt); d.text((cx - w/2, y), text, font=fnt, fill=fill)
 
+def fit_font(d, text, path, start, min_size, max_width, spacing=0):
+    """自动缩小字号直到文本(含字距)不超过 max_width"""
+    size = start
+    while size > min_size:
+        f = font(path, size)
+        w = sum(d.textlength(ch, font=f) for ch in text) + spacing * max(0, len(text) - 1)
+        if w <= max_width: return f, size
+        size -= 2
+    return font(path, min_size), min_size
+
 def glow(img, cx, cy, r, color):
     g = Image.new('RGBA', (W, H), (0, 0, 0, 0)); gd = ImageDraw.Draw(g)
     for i in range(12, 0, -1):
@@ -78,20 +88,20 @@ def make_poster(director):
     center(d, '导演大师会客厅', 70, font(CJK, 26), SUB, spacing=4)
     d.line([cx-90, 112, cx+90, 112], fill=GOLD, width=2)
 
-    # 导演名（大字）
-    center(d, cn, 200, font(CJK, 78), CREAM, spacing=10)
+    # 导演名（大字，长名自动缩号）
+    nf, nsize = fit_font(d, cn, CJK, 78, 40, W - 80, spacing=10)
+    center(d, cn, 200, nf, CREAM, spacing=10 if nsize >= 60 else 4)
 
-    # 代表作
+    # 代表作（过长自动缩号，不再截断）
     if work:
-        wf = font(CJK, 26)
-        w = d.textlength(work, font=wf)
-        if w > W - 100: work = work[:18] + '…'
+        wf, _ = fit_font(d, '代表作  ' + work, CJK, 26, 16, W - 90)
         center(d, '代表作  ' + work, 320, wf, GOLD)
 
-    # 招牌主题（最多 3 行）
+    # 招牌主题（最多 3 行，同样防溢出）
     ty = 380
     for th in themes[:3]:
-        center(d, th, ty, font(CJK, 28), CREAM)
+        tf, _ = fit_font(d, th, CJK, 28, 18, W - 90)
+        center(d, th, ty, tf, CREAM)
         ty += 46
 
     # 二维码卡片
@@ -99,8 +109,9 @@ def make_poster(director):
     card_y = 720
     d.rounded_rectangle([cx-200, card_y, cx+200, card_y+400], radius=28, fill=(250, 247, 241, 255))
     img.paste(qrimg, (cx-140, card_y+30))
-    d.text((cx, card_y+336), '长按识别 · 与' + cn + '对话', font=font(CJK, 25),
-           fill=(107, 93, 74, 255), anchor='mm')
+    cap = '长按识别 · 与' + cn + '对话'
+    cf, _ = fit_font(d, cap, CJK, 25, 15, 380)
+    d.text((cx, card_y+336), cap, font=cf, fill=(107, 93, 74, 255), anchor='mm')
 
     # 底部
     center(d, '免费体验 3 次', 1180, font(CJK, 28), GOLD, spacing=3)
