@@ -80,14 +80,18 @@ function recordQuestion(uid, q, type, meta) {
 }
 
 // ——— LLM（OpenAI 兼容，核心 https，无第三方依赖）———
-function callLLM(system, question, maxTokens) {
+function callLLM(system, question, maxTokens, _attempt) {
   return new Promise((resolve, reject) => {
     if (!CONFIGURED) { resolve(null); return; }
+    // 推理类模型（deepseek-reasoner / o1 / o3 / qwq 等）的 max_tokens 是「推理+正文」共享预算，
+    // 若沿用默认 1400/900，推理会把预算吃完、正文被挤成空。必须拉高。
+    const isReasoner = /reasoner|[-_]?r1\b|o1|o3|qwq|deepseek-reason/i.test(MODEL);
+    const budget = isReasoner ? 8000 : (maxTokens || 1400);
     const body = JSON.stringify({
       model: MODEL,
       messages: [{ role: 'system', content: system }, { role: 'user', content: question }],
       temperature: 0.7,
-      max_tokens: maxTokens || 1400,
+      max_tokens: budget,
     });
     let u;
     try { u = new URL(ENDPOINT); } catch (e) { reject(e); return; }
@@ -109,11 +113,17 @@ function callLLM(system, question, maxTokens) {
         try {
           const j = JSON.parse(data);
           const txt = j.choices && j.choices[0] && j.choices[0].message && j.choices[0].message.content;
-          if (txt) resolve(txt); else reject(new Error('LLM 返回为空'));
+          if (txt && txt.trim()) { resolve(txt); return; }
+          // 推理类模型偶发把预算全花在推理上、正文为空：重试一次
+          if (!_attempt) { resolve(callLLM(system, question, maxTokens, true)); return; }
+          reject(new Error('LLM 返回为空'));
         } catch (e) { reject(e); }
       });
     });
-    req.on('error', reject);
+    req.on('error', (e) => {
+      if (!_attempt) { resolve(callLLM(system, question, maxTokens, true)); return; }
+      reject(e);
+    });
     req.write(body);
     req.end();
   });
