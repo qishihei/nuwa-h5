@@ -106,7 +106,7 @@ def make_poster(director):
             pr = 95                       # 肖像半径
             pcx, pcy = cx, 245            # 肖像圆心
             p = Image.open(pf).convert('RGB')
-            p = ImageOps.fit(p, (pr*2, pr*2), method=Image.LANCZOS)
+            p = ImageOps.fit(p, (pr*2, pr*2), method=Image.LANCZOS, centering=(0.5, 0.18))
             # 轻微降饱和，贴合复古底色
             p = Image.blend(p, ImageOps.grayscale(p).convert('RGB'), 0.25)
             mask = Image.new('L', (pr*2, pr*2), 0)
