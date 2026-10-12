@@ -99,21 +99,39 @@ def make_poster(director):
     d = ImageDraw.Draw(img, 'RGBA')
     cx = W // 2
 
+    # 肖像：圆形金环头像（无图则自动跳过，仅保留淡背景）
+    pf = os.path.join(PORTRAITS, name + '.jpg')
+    if os.path.exists(pf):
+        try:
+            pr = 95                       # 肖像半径
+            pcx, pcy = cx, 245            # 肖像圆心
+            p = Image.open(pf).convert('RGB')
+            p = ImageOps.fit(p, (pr*2, pr*2), method=Image.LANCZOS)
+            # 轻微降饱和，贴合复古底色
+            p = Image.blend(p, ImageOps.grayscale(p).convert('RGB'), 0.25)
+            mask = Image.new('L', (pr*2, pr*2), 0)
+            ImageDraw.Draw(mask).ellipse([0, 0, pr*2 - 1, pr*2 - 1], fill=255)
+            img.paste(p, (pcx - pr, pcy - pr), mask)
+            d.ellipse([pcx-pr-4, pcy-pr-4, pcx+pr+4, pcy+pr+4], outline=GOLD, width=5)
+            d.ellipse([pcx-pr-9, pcy-pr-9, pcx+pr+9, pcy+pr+9], outline=(201, 161, 74, 90), width=2)
+        except Exception:
+            pass
+
     # 顶栏小标
     center(d, '导演大师会客厅', 70, font(CJK, 26), SUB, spacing=4)
     d.line([cx-90, 112, cx+90, 112], fill=GOLD, width=2)
 
     # 导演名（大字，长名自动缩号）
     nf, nsize = fit_font(d, cn, CJK, 78, 40, W - 80, spacing=10)
-    center(d, cn, 200, nf, CREAM, spacing=10 if nsize >= 60 else 4)
+    center(d, cn, 415, nf, CREAM, spacing=10 if nsize >= 60 else 4)
 
     # 代表作（过长自动缩号，不再截断）
     if work:
         wf, _ = fit_font(d, '代表作  ' + work, CJK, 26, 16, W - 90)
-        center(d, '代表作  ' + work, 320, wf, GOLD)
+        center(d, '代表作  ' + work, 505, wf, GOLD)
 
     # 招牌主题（最多 3 行，同样防溢出）
-    ty = 380
+    ty = 560
     for th in themes[:3]:
         tf, _ = fit_font(d, th, CJK, 28, 18, W - 90)
         center(d, th, ty, tf, CREAM)
