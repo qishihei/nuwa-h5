@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 # 生成「思想会客厅」每位大师的专属分享海报（带二维码，扫码直接选中该大师）
 # 用法: python3 make_thinker_posters.py [访问地址]
-#   不传则使用腾讯 CloudBase 部署地址
+#   不传则使用 Render 部署地址（线上活地址，二维码扫得开）
 # 产物: share/posters/<thinker-id>.png  (25 张 + 00-总览.png)
 #        share/posters/index.html        (本地预览画廊)
 # 肖像: share/posters/portraits/<id>.jpg (先跑 fetch_thinker_portraits.py；缺图自动跳过)
