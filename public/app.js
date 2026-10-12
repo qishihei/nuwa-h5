@@ -71,18 +71,34 @@ async function loadPersons() {
   state.persons = d.persons || [];
   personsEl.innerHTML = '';
   const AVATAR_COLORS = ['#c0563b','#b07b2c','#5b8a72','#3f6fa3','#8a5a9e','#a6444f','#4a8c8c','#9c6b3f','#6b7bbf','#b5892f','#7a8450','#bd6a8a'];
+  // 深链接：?thinker=charlie-munger 或 ?thinker=munger,jobs 打开即选中对应大师
+  const params = new URLSearchParams(location.search);
+  const deepRaw = params.get('thinker') || params.get('t');
+  const deepSet = new Set(deepRaw ? deepRaw.split(',').map(s => s.trim()).filter(Boolean) : []);
+  const added = [];
   state.persons.forEach((p, i) => {
     const el = document.createElement('div');
     el.className = 'person';
     const nm = EN ? enNameOf(p.display_name) : p.display_name;
     const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
     el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
+    if (deepSet.size && state.selected.size < 5) {
+      const hit = [...deepSet].some(id =>
+        p.name === id || p.name.includes(id) ||
+        (p.display_name || '').toLowerCase().includes(id.toLowerCase()));
+      if (hit && !state.selected.has(p.name)) { state.selected.add(p.name); added.push(nm.replace(/[·\s].*$/, '')); }
+    }
+    if (state.selected.has(p.name)) el.classList.add('on');
     el.onclick = () => {
       if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
       else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
     };
     personsEl.appendChild(el);
   });
+  if (added.length) {
+    toast((EN ? 'Selected: ' : '已为你选中：') + added.join('、'));
+    const q = $('#question'); if (q) q.focus();
+  }
   await refreshQuota();
 }
 
