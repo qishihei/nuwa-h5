@@ -10,7 +10,7 @@ import os, re, sys, json
 import qrcode
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
-BASE = sys.argv[1] if len(sys.argv) > 1 else 'https://d6gnzuxxd50c83iaa-1502990614.tcloudbaseapp.com'
+BASE = sys.argv[1] if len(sys.argv) > 1 else 'https://nuwa-h5.onrender.com'
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILLS_JSON = os.path.join(HERE, '..', 'skills.json')
 OUT  = os.path.join(HERE, 'posters')
