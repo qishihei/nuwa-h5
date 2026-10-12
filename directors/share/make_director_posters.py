@@ -119,23 +119,88 @@ def make_poster(director):
 
     return img.convert('RGB'), url
 
+# ---------- 整站总览海报（对齐 director-poster-zh 版式，全部文字自动缩号） ----------
+def make_overview():
+    url = BASE
+    base = Image.new('RGB', (W, H)); px = base.load()
+    for y in range(H):
+        t = y / (H - 1)
+        cc = tuple(int(TOP[i] + (MID[i]-TOP[i])*(t/0.55)) for i in range(3)) if t < 0.55 else \
+             tuple(int(MID[i] + (BOT[i]-MID[i])*((t-0.55)/0.45)) for i in range(3))
+        for x in range(W): px[x, y] = cc
+    img = base.convert('RGBA')
+    img = glow(img, W, 0, 420, (201, 161, 74, 150))
+    img = glow(img, 0, H-140, 380, (192, 86, 59, 110))
+    d = ImageDraw.Draw(img, 'RGBA')
+    cx = W // 2
+
+    # logo
+    d.rounded_rectangle([cx-48, 70, cx+48, 166], radius=24, fill=(233, 196, 106, 255))
+    d.rounded_rectangle([cx-48, 70, cx+48, 166], radius=24, fill=(192, 86, 59, 90))
+    d.text((cx, 118), '导', font=font(CJK, 54), fill=BROWN, anchor='mm')
+
+    title = '导演大师会客厅'
+    tf, ts = fit_font(d, title, CJK, 62, 30, W - 100, spacing=8)
+    center(d, title, 196, tf, CREAM, spacing=8 if ts >= 50 else 3)
+
+    tagline = '让百年影史百位殿堂级导演，用招牌技法帮你拆解电影创作难题'
+    gf, _ = fit_font(d, tagline, CJK, 24, 15, W - 70)
+    center(d, tagline, 292, gf, SUB)
+
+    m1 = '黑泽明 · 费里尼 · 希区柯克 · 王家卫 · 宫崎骏 · 塔可夫斯基'
+    m2 = '库布里克 · 伯格曼 · 小津安二郎 · 戈达尔 · 李安 · 奉俊昊 …'
+    for text, yy in ((m1, 380), (m2, 428)):
+        mf, _ = fit_font(d, text, CJK, 24, 15, W - 70)
+        center(d, text, yy, mf, GOLD)
+
+    points = [
+        '剧本卡壳、调度混乱、调色廉价、表演僵硬——说出你的创作难题',
+        '多位导演同台，用各自招牌技法给你可落地的思路',
+        '不是泛泛而谈，是能直接用到镜头前的实操框架',
+    ]
+    py = 510
+    for p in points:
+        pf, _ = fit_font(d, p, CJK, 24, 15, W - 140)
+        d.text((60, py), '✦', font=font(CJK, 24), fill=GOLD)
+        d.text((94, py), p, font=pf, fill=CREAM)
+        py += 48
+
+    qrimg = qr_png(url, 280)
+    card_y = 770
+    d.rounded_rectangle([cx-200, card_y, cx+200, card_y+380], radius=28, fill=(250, 247, 241, 255))
+    img.paste(qrimg, (cx-140, card_y+28))
+    cap = '长按识别二维码，立即体验'
+    cf, _ = fit_font(d, cap, CJK, 23, 15, 380)
+    d.text((cx, card_y+322), cap, font=cf, fill=(107, 93, 74, 255), anchor='mm')
+
+    center(d, '免费体验 3 次', 1200, font(CJK, 28), GOLD, spacing=3)
+    center(d, '合作交流加微信：fuping394319746', 1360, font(CJK, 21), DIM)
+    return img.convert('RGB'), url
+
 # ---------- 执行 ----------
 data = json.load(open(os.path.join(HERE, '..', 'directors.json'), encoding='utf-8'))
 directors = data['directors']
 print(f'载入导演 {len(directors)} 位，开始生成海报 → {OUT}')
 items = []
+
+ovi, ourl = make_overview()
+ofn = '00-总览.png'
+ovi.save(os.path.join(OUT, ofn))
+items.append(('总览 · 扫码进大厅', ourl, ofn))
+print(f'  [ 总览 ] director-poster -> {os.path.join(OUT, ofn)}')
+
 for i, dr in enumerate(directors, 1):
     img, url = make_poster(dr)
     fn = os.path.join(OUT, dr['name'] + '.png')
     img.save(fn)
-    items.append((dr, url, os.path.basename(fn)))
+    items.append((cn_name(dr.get('display_name', dr['name'])), url, os.path.basename(fn)))
     print(f'  [{i:2d}/{len(directors)}] {dr["name"]:22s} -> {fn}')
 
 # 预览画廊
 cards = '\n'.join(
-    f'''<div class="c"><img src="{fn}"><div class="meta"><b>{cn_name(dr.get('display_name', dr['name']))}</b>'
-    f'<code>{url}</code><a href="{url}" target="_blank">打开深链 ↗</a></div></div>'''
-    for dr, url, fn in items
+    f'<div class="c"><img src="{fn}"><div class="meta"><b>{t}</b>'
+    f'<code>{u}</code><a href="{u}" target="_blank">打开链接 ↗</a></div></div>'
+    for t, u, fn in items
 )
 html = f'''<!DOCTYPE html><html lang="zh"><head><meta charset="UTF-8">
 <title>导演大师会客厅 · 海报预览</title><style>
@@ -146,8 +211,8 @@ h1{{font-size:24px;margin:0 0 6px}}p{{opacity:.6;margin:0 0 24px}}
 .c img{{width:100%;display:block}}.meta{{padding:12px 14px}}.meta b{{font-size:18px}}
 code{{display:block;font-size:11px;opacity:.5;margin:6px 0;word-break:break-all}}
 a{{color:#e9c46a;font-size:13px;text-decoration:none}}</style></head>
-<body><h1>导演大师会客厅 · 专属海报预览</h1>
-<p>共 {len(items)} 张 · 扫码即进入对应导演对话（深链 ?director=id）</p>
+<body><h1>导演大师会客厅 · 海报预览</h1>
+<p>总览 1 张 + 导演专属 {len(directors)} 张 · 扫码即进入对应导演对话（深链 ?director=id）</p>
 <div class="grid">{cards}</div></body></html>'''
 open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write(html)
 print('画廊 ->', os.path.join(OUT, 'index.html'))
