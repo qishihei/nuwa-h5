@@ -72,6 +72,29 @@ async function loadPersons() {
   state.searchTerm = '';
   renderPersons();
   await refreshQuota();
+  applyDeepLink();
+}
+
+// 深链接：?director=akira-kurosawa 或 ?director=kurosawa,ozu 打开即选中对应导演
+function applyDeepLink() {
+  const params = new URLSearchParams(location.search);
+  const raw = params.get('director') || params.get('d');
+  if (!raw) return;
+  const want = raw.split(',').map(s => s.trim()).filter(Boolean);
+  const added = [];
+  want.forEach(id => {
+    if (state.selected.size >= 5) return;
+    const p = state.persons.find(x =>
+      x.name === id || x.name.includes(id) ||
+      (x.display_name || '').toLowerCase().includes(id.toLowerCase()));
+    if (p && !state.selected.has(p.name)) { state.selected.add(p.name); added.push(p); }
+  });
+  if (added.length) {
+    renderPersons();
+    const nm = added.map(p => (EN ? enNameOf(p.display_name) : p.display_name).replace(/[·\s].*$/, '')).join('、');
+    toast((EN ? 'Selected: ' : '已为你选中：') + nm);
+    const q = $('#question'); if (q) q.focus();
+  }
 }
 
 function renderPersons() {
