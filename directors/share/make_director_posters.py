@@ -7,12 +7,14 @@
 
 import io, os, re, sys, json, base64
 import qrcode
-from PIL import Image, ImageDraw, ImageFont, ImageFilter
+from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else 'https://director-salon.onrender.com'
 HERE = os.path.dirname(os.path.abspath(__file__))
 OUT  = os.path.join(HERE, 'posters')
+PORTRAITS = os.path.join(OUT, 'portraits')
 os.makedirs(OUT, exist_ok=True)
+os.makedirs(PORTRAITS, exist_ok=True)
 
 CJK = '/System/Library/Fonts/PingFang.ttc'
 EN  = '/System/Library/Fonts/Helvetica.ttc'
@@ -81,6 +83,19 @@ def make_poster(director):
     img = base.convert('RGBA'); d = ImageDraw.Draw(img, 'RGBA')
     img = glow(img, W-90, 80, 380, (201, 161, 74, 140))
     img = glow(img, 60, H-160, 360, (192, 86, 59, 100))
+
+    # 肖像淡背景：灰度 + 模糊 + 低透明度，垫在文字之下
+    pf = os.path.join(PORTRAITS, name + '.jpg')
+    if os.path.exists(pf):
+        try:
+            p = Image.open(pf).convert('L')
+            p = ImageOps.fit(p, (W, H), method=Image.LANCZOS, bleed=0.0)
+            p = p.filter(ImageFilter.GaussianBlur(10))
+            pa = p.convert('RGBA'); pa.putalpha(34)
+            img = Image.alpha_composite(img, pa)
+        except Exception:
+            pass
+
     d = ImageDraw.Draw(img, 'RGBA')
     cx = W // 2
 
