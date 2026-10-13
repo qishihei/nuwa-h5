@@ -116,8 +116,40 @@ function renderPersons() {
     el.onclick = () => {
       if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
       else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
+      syncPicker();
     };
     personsEl.appendChild(el);
+  });
+  syncPicker();
+}
+
+// 下拉选择器：按钮摘要 + 已选标签同步
+function cnShort(nm) { return nm.replace(/\s+[A-Za-z].*$/, '').trim(); }
+function syncPicker() {
+  const label = document.getElementById('pickerLabel');
+  const picked = document.getElementById('picked');
+  if (!label || !picked) return;
+  const ids = [...state.selected];
+  const names = ids.map(id => {
+    const p = state.persons.find(x => x.name === id);
+    return p ? (EN ? enNameOf(p.display_name) : p.display_name) : id;
+  });
+  label.textContent = names.length
+    ? (EN ? names.length + ' selected: ' : '已选 ' + names.length + ' 位：') + names.map(cnShort).join('、')
+    : (EN ? 'Tap to choose directors' : '点此选择导演');
+  picked.innerHTML = '';
+  ids.forEach(id => {
+    const p = state.persons.find(x => x.name === id);
+    const nm = p ? (EN ? enNameOf(p.display_name) : p.display_name) : id;
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.innerHTML = cnShort(nm) + ' <span class="x">×</span>';
+    c.querySelector('.x').onclick = (e) => {
+      e.stopPropagation();
+      state.selected.delete(id);
+      renderPersons();
+    };
+    picked.appendChild(c);
   });
 }
 
@@ -312,6 +344,25 @@ $('#reshuffle').onclick = renderExamples;
 setInterval(() => { if (!$('#question').value.trim()) renderExamples(); }, 12000);
 
 loadPersons();
+// 下拉选择器开关：点按钮展开/收起，点外面自动收起
+const pToggle = document.getElementById('pickerToggle');
+const pPanel = document.getElementById('pickerPanel');
+if (pToggle && pPanel) {
+  pToggle.onclick = () => {
+    const open = pPanel.hidden;
+    pPanel.hidden = !open;
+    pToggle.setAttribute('aria-expanded', String(open));
+    pToggle.classList.toggle('open', open);
+    if (open) { const s = document.getElementById('searchBox'); if (s) s.focus(); }
+  };
+  document.addEventListener('click', (e) => {
+    if (pPanel.hidden) return;
+    if (pPanel.contains(e.target) || pToggle.contains(e.target)) return;
+    pPanel.hidden = true;
+    pToggle.setAttribute('aria-expanded', 'false');
+    pToggle.classList.remove('open');
+  });
+}
 const _sb = document.getElementById('searchBox');
 if (_sb) _sb.addEventListener('input', e => { state.searchTerm = e.target.value.trim(); renderPersons(); });
 renderExamples();   // 先用兜底池渲染，避免空白

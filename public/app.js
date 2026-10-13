@@ -79,6 +79,7 @@ async function loadPersons() {
   state.persons.forEach((p, i) => {
     const el = document.createElement('div');
     el.className = 'person';
+    el.dataset.name = p.name;
     const nm = EN ? enNameOf(p.display_name) : p.display_name;
     const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
     el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
@@ -92,6 +93,7 @@ async function loadPersons() {
     el.onclick = () => {
       if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
       else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
+      syncPicker();
     };
     personsEl.appendChild(el);
   });
@@ -99,7 +101,42 @@ async function loadPersons() {
     toast((EN ? 'Selected: ' : '已为你选中：') + added.join('、'));
     const q = $('#question'); if (q) q.focus();
   }
+  syncPicker();
   await refreshQuota();
+}
+
+// 下拉选择器：按钮摘要 + 已选标签同步
+function cnShort(nm) { return nm.replace(/\s+[A-Za-z].*$/, '').trim(); }
+function syncPicker() {
+  const label = document.getElementById('pickerLabel');
+  const picked = document.getElementById('picked');
+  if (!label || !picked) return;
+  const ids = [...state.selected];
+  const names = ids.map(id => {
+    const p = state.persons.find(x => x.name === id);
+    return p ? (EN ? enNameOf(p.display_name) : p.display_name) : id;
+  });
+  label.textContent = names.length
+    ? (EN ? names.length + ' selected: ' : '已选 ' + names.length + ' 位：') + names.map(cnShort).join('、')
+    : (EN ? 'Tap to choose thinkers' : '点此选择大师');
+  picked.innerHTML = '';
+  ids.forEach(id => {
+    const p = state.persons.find(x => x.name === id);
+    const nm = p ? (EN ? enNameOf(p.display_name) : p.display_name) : id;
+    const c = document.createElement('span');
+    c.className = 'chip';
+    c.innerHTML = cnShort(nm) + ' <span class="x">×</span>';
+    c.querySelector('.x').onclick = (e) => {
+      e.stopPropagation();
+      state.selected.delete(id);
+      [...personsEl.querySelectorAll('.person')].forEach(el => {
+        const key = el.querySelector('.pn') && el.dataset.name;
+        if (key === id) el.classList.remove('on');
+      });
+      syncPicker();
+    };
+    picked.appendChild(c);
+  });
 }
 
 function showPay() {
@@ -296,6 +333,33 @@ $('#reshuffle').onclick = renderExamples;
 setInterval(() => { if (!$('#question').value.trim()) renderExamples(); }, 12000);
 
 loadPersons();
+// 下拉选择器开关：点按钮展开/收起，点外面自动收起
+const pToggle = document.getElementById('pickerToggle');
+const pPanel = document.getElementById('pickerPanel');
+if (pToggle && pPanel) {
+  pToggle.onclick = () => {
+    const open = pPanel.hidden;
+    pPanel.hidden = !open;
+    pToggle.setAttribute('aria-expanded', String(open));
+    pToggle.classList.toggle('open', open);
+    if (open) { const s = document.getElementById('pickerSearch'); if (s) s.focus(); }
+  };
+  document.addEventListener('click', (e) => {
+    if (pPanel.hidden) return;
+    if (pPanel.contains(e.target) || pToggle.contains(e.target)) return;
+    pPanel.hidden = true;
+    pToggle.setAttribute('aria-expanded', 'false');
+    pToggle.classList.remove('open');
+  });
+}
+// 面板内搜索：过滤大师 chips
+const _ps = document.getElementById('pickerSearch');
+if (_ps) _ps.addEventListener('input', (e) => {
+  const t = e.target.value.trim().toLowerCase();
+  [...personsEl.querySelectorAll('.person')].forEach(el => {
+    el.style.display = (!t || el.textContent.toLowerCase().includes(t)) ? '' : 'none';
+  });
+});
 renderExamples();   // 先用兜底池渲染，避免空白
 loadPains();        // 拉取 /pains.json 后自动重渲染
 loadPainWeights();  // 拉取服务端点击权重后自动重渲染

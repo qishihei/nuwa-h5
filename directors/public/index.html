@@ -10,7 +10,7 @@
   <meta name="theme-color" content="#2b2118" />
   <link rel="manifest" href="/manifest.webmanifest" />
   <link rel="apple-touch-icon" href="/icon.png" />
-  <link rel="stylesheet" href="/style.css?v=6" />
+  <link rel="stylesheet" href="/style.css?v=7" />
 </head>
 <body>
   <header class="hd">
@@ -22,8 +22,14 @@
   <main>
     <section class="block">
       <label class="lbl">① 选择一位或多位「导演」（多选将生成对比）</label>
-      <input id="searchBox" class="pf-in" type="search" placeholder="搜索导演 / 国家 / 流派，如：黑泽、日本、新浪潮" style="width:100%;margin-bottom:8px" />
-      <div class="persons" id="persons"><div class="loading">加载中…</div></div>
+      <button type="button" class="picker-toggle" id="pickerToggle" aria-expanded="false">
+        <span id="pickerLabel">点此选择导演</span><span class="caret">▾</span>
+      </button>
+      <div class="picked" id="picked"></div>
+      <div class="picker-panel" id="pickerPanel" hidden>
+        <input id="searchBox" class="pf-in" type="search" placeholder="搜索导演 / 国家 / 流派，如：黑泽、日本、新浪潮" />
+        <div class="persons" id="persons"><div class="loading">加载中…</div></div>
+      </div>
     </section>
 
     <section class="block">
@@ -57,6 +63,6 @@
   <div class="toast" id="toast" hidden></div>
 
   <script src="/config.js"></script>
-  <script src="/app.js?v=11"></script>
+  <script src="/app.js?v=12"></script>
 </body>
 </html>

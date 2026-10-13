@@ -43,6 +43,32 @@ main { max-width: 640px; margin: 0 auto; padding: 16px; }
   box-shadow: 0 2px 10px rgba(33,27,20,.05); border: 1px solid #f0ebe1;
 }
 .lbl { display: block; font-size: 13px; font-weight: 600; color: #6b5d4a; margin-bottom: 10px; }
+/* —— 大师下拉选择器 —— */
+.picker-toggle {
+  width: 100%; display: flex; align-items: center; justify-content: space-between; gap: 8px;
+  border: 1.5px solid var(--line); background: #faf7f1; border-radius: 12px;
+  padding: 12px 14px; font-size: 15px; font-family: inherit; color: var(--ink); cursor: pointer; text-align: left;
+}
+.picker-toggle .caret { color: var(--muted); transition: transform .2s; flex: 0 0 auto; }
+.picker-toggle[aria-expanded="true"] .caret { transform: rotate(180deg); }
+.picker-toggle.open { border-color: var(--gold); box-shadow: 0 0 0 3px rgba(201,161,74,.12); }
+.picker-panel {
+  margin-top: 8px; border: 1.5px solid var(--line); border-radius: 12px; background: #fff;
+  padding: 10px; max-height: 260px; overflow-y: auto; box-shadow: 0 8px 20px rgba(33,27,20,.1);
+}
+.picker-panel input[type="search"] {
+  width: 100%; border: 1.5px solid var(--line); border-radius: 10px; padding: 8px 10px;
+  font-size: 14px; font-family: inherit; background: #faf7f1; margin-bottom: 8px;
+}
+.picker-panel input[type="search"]:focus { outline: none; border-color: var(--gold); }
+.picked { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+.picked:empty { display: none; }
+.picked .chip {
+  display: inline-flex; align-items: center; gap: 5px; font-size: 12px;
+  background: var(--brand1); color: #f3e9d8; border-radius: 14px; padding: 3px 9px;
+}
+.picked .chip .x { cursor: pointer; opacity: .75; font-weight: 700; padding: 0 1px; }
+.picked .chip .x:hover { opacity: 1; }
 /* —— 大师卡片 —— */
 .persons { display: flex; flex-wrap: wrap; gap: 8px; }
 .person {
