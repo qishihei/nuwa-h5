@@ -41,7 +41,6 @@ CONTENT = {
             '不是泛泛而谈，是能直接用到镜头前的实操框架',
         ],
         'qr_cap': '长按识别二维码，立即体验',
-        'free': '免费体验 3 次',
         'footer': '合作交流加微信：fuping394319746',
         'font': CJK,
     },
@@ -56,7 +55,6 @@ CONTENT = {
             "Not vague advice — a framework you can put on screen",
         ],
         'qr_cap': 'Scan to enter · English version',
-        'free': '3 free uses',
         'footer': 'WeChat: fuping394319746',
         'font': EN,
     },
@@ -92,7 +90,6 @@ def make_html(c):
     box-shadow:0 18px 48px rgba(0,0,0,.4); text-align:center; z-index:1; }}
   .qr-card img {{ width:280px; height:280px; display:block; }}
   .qr-card p {{ color:#6b5d4a; font-size:23px; margin-top:12px; font-weight:600; }}
-  .free {{ margin-top:26px; font-size:26px; color:#e9c46a; letter-spacing:3px; font-weight:700; z-index:1; }}
   .footer {{ margin-top:auto; padding:24px 0 46px; font-size:21px; opacity:.6; letter-spacing:1px; z-index:1; }}
 </style></head>
 <body>
@@ -106,7 +103,6 @@ def make_html(c):
     <img src="data:image/png;base64,{QR}" alt="qr">
     <p>{c['qr_cap']}</p>
   </div>
-  <div class="free">{c['free']}</div>
   <div class="footer">{c['footer']}</div>
 </div>
 </body>
@@ -172,8 +168,7 @@ def make_png(c):
     d.rounded_rectangle([cx-200, card_y, cx+200, card_y+380], radius=28, fill=(250, 247, 241, 255))
     img.paste(qrimg, (cx-140, card_y+28))
     d.text((cx, card_y+322), c['qr_cap'], font=f(23), fill=(107, 93, 74, 255), anchor='mm')
-    center(c['free'], 1200, f(28), GOLD)
-    center(c['footer'], 1360, f(21), DIM)
+    center(c['footer'], 1340, f(21), DIM)
     return img.convert('RGB')
 
 for lang, c in CONTENT.items():

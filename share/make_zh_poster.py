@@ -66,8 +66,7 @@ d.rounded_rectangle([cx-200, card_y, cx+200, card_y+380], radius=28, fill=(250, 
 img.paste(qr, (cx-140, card_y+28))
 d.text((cx, card_y+322), '长按识别二维码，立即体验', font=font(CJK, 23), fill=(107, 93, 74, 255), anchor='mm')
 
-center(d, '免费体验 3 次', 1200, font(CJK, 28), GOLD)
-center(d, '合作交流加微信：fuping394319746', 1360, font(CJK, 21), DIM)
+center(d, '合作交流加微信：fuping394319746', 1340, font(CJK, 21), DIM)
 
 img.convert('RGB').save(os.path.join(HERE, 'poster.png'))
 print('saved poster.png')

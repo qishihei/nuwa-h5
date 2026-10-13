@@ -147,8 +147,7 @@ def make_poster(director):
     d.text((cx, card_y+336), cap, font=cf, fill=(107, 93, 74, 255), anchor='mm')
 
     # 底部
-    center(d, '免费体验 3 次', 1180, font(CJK, 28), GOLD, spacing=3)
-    center(d, '合作交流加微信：fuping394319746', 1270, font(CJK, 21), DIM)
+    center(d, '合作交流加微信：fuping394319746', 1250, font(CJK, 21), DIM)
 
     return img.convert('RGB'), url
 
@@ -206,8 +205,7 @@ def make_overview():
     cf, _ = fit_font(d, cap, CJK, 23, 15, 380)
     d.text((cx, card_y+322), cap, font=cf, fill=(107, 93, 74, 255), anchor='mm')
 
-    center(d, '免费体验 3 次', 1200, font(CJK, 28), GOLD, spacing=3)
-    center(d, '合作交流加微信：fuping394319746', 1360, font(CJK, 21), DIM)
+    center(d, '合作交流加微信：fuping394319746', 1340, font(CJK, 21), DIM)
     return img.convert('RGB'), url
 
 # ---------- 执行 ----------

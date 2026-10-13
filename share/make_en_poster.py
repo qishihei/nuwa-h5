@@ -76,8 +76,7 @@ d.rounded_rectangle([cx-200, card_y, cx+200, card_y+380], radius=28, fill=(250,2
 img.paste(qr, (cx-140, card_y+28))
 d.text((cx, card_y+322), 'Scan to enter · English version', font=REG(23), fill=(107,93,74,255), anchor='mm')
 
-center('3 free uses', 1200, BOLD(28), GOLD)
-center('WeChat: fuping394319746', 1360, REG(21), DIM)
+center('WeChat: fuping394319746', 1340, REG(21), DIM)
 
 img.convert('RGB').save('en-poster.png')
 print('saved en-poster.png')
