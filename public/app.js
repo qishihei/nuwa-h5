@@ -65,42 +65,77 @@ async function refreshQuota() {
   return d;
 }
 
+// 热门推荐（展开面板时默认置顶展示）
+const HOT = ['charlie-munger','warren-buffett','steve-jobs','confucius','laozi','elon-musk'];
+const AVATAR_COLORS = ['#c0563b','#b07b2c','#5b8a72','#3f6fa3','#8a5a9e','#a6444f','#4a8c8c','#9c6b3f','#6b7bbf','#b5892f','#7a8450','#bd6a8a'];
+function makeChip(p, i) {
+  const el = document.createElement('div');
+  el.className = 'person';
+  el.dataset.name = p.name;
+  const nm = EN ? enNameOf(p.display_name) : p.display_name;
+  const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
+  el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
+  if (state.selected.has(p.name)) el.classList.add('on');
+  el.onclick = () => {
+    if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
+    else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
+    syncPicker();
+  };
+  return el;
+}
+function buildHot(term) {
+  const t = (term || '').toLowerCase();
+  const wrap = document.createElement('div');
+  wrap.className = 'hot-group';
+  wrap.id = 'hotWrap';
+  const lab = document.createElement('div');
+  lab.className = 'hot-label';
+  lab.textContent = '🔥 热门推荐';
+  wrap.appendChild(lab);
+  const row = document.createElement('div');
+  row.className = 'persons';
+  let n = 0;
+  HOT.forEach(id => {
+    const idx = state.persons.findIndex(x => x.name === id);
+    if (idx < 0) return;
+    const p = state.persons[idx];
+    const hay = (p.display_name + ' ' + (p.country || '') + ' ' + (p.genre || '')).toLowerCase();
+    if (t && hay.indexOf(t) === -1) return;
+    const c = makeChip(p, idx);
+    c.classList.add('hot');
+    row.appendChild(c);
+    n++;
+  });
+  if (!n) return null;
+  wrap.appendChild(row);
+  return wrap;
+}
+
 async function loadPersons() {
   const r = await fetch(API + '/api/persons');
   const d = await r.json();
   state.persons = d.persons || [];
   personsEl.innerHTML = '';
-  const AVATAR_COLORS = ['#c0563b','#b07b2c','#5b8a72','#3f6fa3','#8a5a9e','#a6444f','#4a8c8c','#9c6b3f','#6b7bbf','#b5892f','#7a8450','#bd6a8a'];
   // 深链接：?thinker=charlie-munger 或 ?thinker=munger,jobs 打开即选中对应大师
   const params = new URLSearchParams(location.search);
   const deepRaw = params.get('thinker') || params.get('t');
   const deepSet = new Set(deepRaw ? deepRaw.split(',').map(s => s.trim()).filter(Boolean) : []);
   const added = [];
   state.persons.forEach((p, i) => {
-    const el = document.createElement('div');
-    el.className = 'person';
-    el.dataset.name = p.name;
-    const nm = EN ? enNameOf(p.display_name) : p.display_name;
-    const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
-    el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
     if (deepSet.size && state.selected.size < 5) {
       const hit = [...deepSet].some(id =>
         p.name === id || p.name.includes(id) ||
         (p.display_name || '').toLowerCase().includes(id.toLowerCase()));
-      if (hit && !state.selected.has(p.name)) { state.selected.add(p.name); added.push(nm.replace(/[·\s].*$/, '')); }
+      if (hit && !state.selected.has(p.name)) { state.selected.add(p.name); added.push((EN ? enNameOf(p.display_name) : p.display_name).replace(/[·\s].*$/, '')); }
     }
-    if (state.selected.has(p.name)) el.classList.add('on');
-    el.onclick = () => {
-      if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
-      else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
-      syncPicker();
-    };
-    personsEl.appendChild(el);
+    personsEl.appendChild(makeChip(p, i));
   });
   if (added.length) {
     toast((EN ? 'Selected: ' : '已为你选中：') + added.join('、'));
     const q = $('#question'); if (q) q.focus();
   }
+  const hot = buildHot('');
+  if (hot) personsEl.insertBefore(hot, personsEl.firstChild);
   syncPicker();
   await refreshQuota();
 }
@@ -352,13 +387,17 @@ if (pToggle && pPanel) {
     pToggle.classList.remove('open');
   });
 }
-// 面板内搜索：过滤大师 chips
+// 面板内搜索：过滤大师 chips，并重建热门推荐分组
 const _ps = document.getElementById('pickerSearch');
 if (_ps) _ps.addEventListener('input', (e) => {
   const t = e.target.value.trim().toLowerCase();
   [...personsEl.querySelectorAll('.person')].forEach(el => {
     el.style.display = (!t || el.textContent.toLowerCase().includes(t)) ? '' : 'none';
   });
+  const old = document.getElementById('hotWrap');
+  if (old) old.remove();
+  const hot = buildHot(t);
+  if (hot) personsEl.insertBefore(hot, personsEl.firstChild);
 });
 renderExamples();   // 先用兜底池渲染，避免空白
 loadPains();        // 拉取 /pains.json 后自动重渲染

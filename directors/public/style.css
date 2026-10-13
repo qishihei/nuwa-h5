@@ -69,6 +69,11 @@ main { max-width: 640px; margin: 0 auto; padding: 16px; }
 }
 .picked .chip .x { cursor: pointer; opacity: .75; font-weight: 700; padding: 0 1px; }
 .picked .chip .x:hover { opacity: 1; }
+/* —— 热门推荐分组 —— */
+.hot-group { width: 100%; margin-bottom: 6px; }
+.hot-label { font-size: 12px; font-weight: 700; color: #c0563b; margin: 2px 0 8px; letter-spacing: .5px; }
+.person.hot { border-color: var(--gold); background: #fbf3e2; }
+.person.hot.on { background: var(--brand1); border-color: var(--brand1); }
 /* —— 大师卡片 —— */
 .persons { display: flex; flex-wrap: wrap; gap: 8px; }
 .person {

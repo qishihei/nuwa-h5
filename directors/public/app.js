@@ -23,6 +23,50 @@ const PKGS = [
   { id: 'master', name: '大师包', en: 'Master Pack', price: 99.0, quota: 40 },
 ];
 
+// 热门推荐（展开面板时默认置顶展示）
+const HOT = ['akira-kurosawa','wong-kar-wai','stanley-kubrick','hayao-miyazaki','ingmar-bergman','federico-fellini'];
+const AVATAR_COLORS = ['#c0563b','#b07b2c','#5b8a72','#3f6fa3','#8a5a9e','#a6444f','#4a8c8c','#9c6b3f','#6b7bbf','#b5892f','#7a8450','#bd6a8a'];
+function makeChip(p, i) {
+  const el = document.createElement('div');
+  el.className = 'person' + (state.selected.has(p.name) ? ' on' : '');
+  const nm = EN ? enNameOf(p.display_name) : p.display_name;
+  const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
+  el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
+  el.onclick = () => {
+    if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
+    else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
+    syncPicker();
+  };
+  return el;
+}
+function buildHot(term) {
+  const t = (term || '').toLowerCase();
+  const wrap = document.createElement('div');
+  wrap.className = 'hot-group';
+  wrap.id = 'hotWrap';
+  const lab = document.createElement('div');
+  lab.className = 'hot-label';
+  lab.textContent = '🔥 热门推荐';
+  wrap.appendChild(lab);
+  const row = document.createElement('div');
+  row.className = 'persons';
+  let n = 0;
+  HOT.forEach(id => {
+    const idx = state.persons.findIndex(x => x.name === id);
+    if (idx < 0) return;
+    const p = state.persons[idx];
+    const hay = (p.display_name + ' ' + (p.country || '') + ' ' + (p.genre || '')).toLowerCase();
+    if (t && hay.indexOf(t) === -1) return;
+    const c = makeChip(p, idx);
+    c.classList.add('hot');
+    row.appendChild(c);
+    n++;
+  });
+  if (!n) return null;
+  wrap.appendChild(row);
+  return wrap;
+}
+
 const state = {
   persons: [],
   selected: new Set(),
@@ -106,20 +150,9 @@ function renderPersons() {
   });
   personsEl.innerHTML = '';
   if (!list.length) { personsEl.innerHTML = '<div class="loading">没有匹配的导演</div>'; return; }
-  const AVATAR_COLORS = ['#c0563b','#b07b2c','#5b8a72','#3f6fa3','#8a5a9e','#a6444f','#4a8c8c','#9c6b3f','#6b7bbf','#b5892f','#7a8450','#bd6a8a'];
-  list.forEach((p, i) => {
-    const el = document.createElement('div');
-    el.className = 'person' + (state.selected.has(p.name) ? ' on' : '');
-    const nm = EN ? enNameOf(p.display_name) : p.display_name;
-    const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
-    el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
-    el.onclick = () => {
-      if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
-      else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
-      syncPicker();
-    };
-    personsEl.appendChild(el);
-  });
+  list.forEach((p, i) => { personsEl.appendChild(makeChip(p, i)); });
+  const hot = buildHot(term);
+  if (hot) personsEl.insertBefore(hot, personsEl.firstChild);
   syncPicker();
 }
 
