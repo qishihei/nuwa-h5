@@ -331,6 +331,18 @@ def meta_text(tid):
     n = 4800 + int(hashlib.md5(tid.encode()).hexdigest(), 16) % 1100
     return f'全文约{n}字 | 阅读需12分钟'
 
+# 顶部引流 slogan：统一“与大师对话”调性，每卡按 id 稳定分配一条
+SLOGANS = [
+    '来一场跟思想大师最密切的对话',
+    '把大师请进你的深夜思考',
+    '与伟大头脑共度一刻钟',
+    '让百年智慧，回答你今天的问题',
+    '和思想巨匠，聊点真东西',
+]
+def slogan(tid):
+    i = int(hashlib.md5(tid.encode()).hexdigest(), 16) % len(SLOGANS)
+    return SLOGANS[i]
+
 def draw_card(c, tid, cn, measure=False):
     H = 2800  # 先画在大画布上，最后按实际内容高度裁切
     img = Image.new('RGB', (W, H), PAPER)
@@ -339,9 +351,10 @@ def draw_card(c, tid, cn, measure=False):
 
     # 顶部粗线 + 小标语 + 细线
     d.rectangle([M, y, W - M, y + 7], fill=INK); y += 34
-    tf, _ = fit_font(c['tag'], REGULAR, 31, 22, CW, spacing=2)
-    tw = sum(d.textlength(ch, font=tf) for ch in c['tag'])
-    d.text(((W - tw) / 2, y), c['tag'], font=tf, fill=INK); y += 52
+    slo = slogan(tid)
+    tf, _ = fit_font(slo, REGULAR, 31, 22, CW, spacing=2)
+    tw = sum(d.textlength(ch, font=tf) for ch in slo)
+    d.text(((W - tw) / 2, y), slo, font=tf, fill=INK); y += 52
     d.rectangle([M, y, W - M, y + 2], fill=INK); y += 44
 
     # 大标题（左对齐，自动缩号）
