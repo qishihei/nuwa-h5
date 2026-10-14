@@ -6,7 +6,7 @@
 
 import os, sys, json, hashlib
 import qrcode
-from PIL import Image, ImageDraw, ImageFont, ImageOps
+from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else 'https://nuwa-h5.onrender.com'
 HERE = os.path.dirname(os.path.abspath(__file__))
@@ -69,6 +69,45 @@ def wrap(text, fnt, max_w):
             cur += ch
     if cur: lines.append(cur)
     return lines
+
+# 智能裁切：在原图上滑动纵向窗口，选“边缘能量最高”（人脸/主体所在）的窗口；顶部略加权防切头
+# 逐人微调：CROP_Y[id] 强制指定窗口纵向位置 0(贴顶)~1(贴底)
+CROP_Y = {
+    'elon-musk': 0.02,
+    'steve-jobs': 0.14,
+    'kazuo-inamori': 0.12,
+    'wang-yangming': 0.50,
+    'sun-tzu': 0.38,
+    'sima-qian': 0.45,
+    'marie-curie': 0.22,
+    'coco-chanel': 0.10,
+    'friedrich-hayek': 0.08,
+    'liqingzhao': 0.22,
+    'socrates': 0.12,
+    'zhang-yiming': 0.18,
+    'richard-feynman': 0.12,
+    'sam-altman': 0.15,
+    'daniel-kahneman': 0.10,
+}
+
+def smart_centering(img, tw, th, tid):
+    W0, H0 = img.size
+    if tid in CROP_Y:
+        return (0.5, CROP_Y[tid])
+    ch = W0 * th / tw            # 目标裁切窗口在原图尺度上的高
+    if ch >= H0:                 # 竖构图：横向滑动，纵向全保留
+        return (0.5, 0.5)
+    g = img.convert('L').resize((60, 60))
+    e = g.filter(ImageFilter.FIND_EDGES)
+    px = e.load()
+    rows = [sum(px[x, y] for x in range(60)) for y in range(60)]
+    win = max(2, round(60 * ch / H0))
+    best, best_top = -1, 0
+    for top in range(0, 60 - win + 1):
+        s = sum(rows[top:top + win]) * (1 + 0.35 * (1 - top / 60))  # 顶部偏置
+        if s > best: best, best_top = s, top
+    cy = (best_top / 60) / max(1e-6, 1 - ch / H0)
+    return (0.5, min(max(cy, 0.0), 1.0))
 
 def qr_png(url, size=300):
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=10, border=2)
@@ -325,7 +364,8 @@ def draw_card(c, tid, cn, measure=False):
     if os.path.exists(pf):
         try:
             p = Image.open(pf).convert('RGB')
-            p = ImageOps.fit(p, (CW, ph_h), method=Image.LANCZOS, centering=(0.5, 0.28))
+            cen = smart_centering(p, CW, ph_h, tid)
+            p = ImageOps.fit(p, (CW, ph_h), method=Image.LANCZOS, centering=cen)
             img.paste(p, (M, int(y)))
         except Exception:
             d.rectangle([M, y, W - M, y + ph_h], fill=BOX)
