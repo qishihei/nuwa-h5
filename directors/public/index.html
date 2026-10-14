@@ -43,7 +43,13 @@
     </section>
 
     <section class="block">
-      <label class="lbl">③ 他们的回答</label>
+      <div class="res-head">
+        <label class="lbl">③ 他们的回答</label>
+        <div class="res-tools" id="resTools" hidden>
+          <button id="saveImg" class="ghost sm">保存长图</button>
+          <button id="clearChat" class="ghost sm">清空对话</button>
+        </div>
+      </div>
       <div id="results"><div class="empty">还没有回答，先选导演、提个问题吧。</div></div>
     </section>
   </main>
@@ -63,6 +69,7 @@
   <div class="toast" id="toast" hidden></div>
 
   <script src="/config.js"></script>
-  <script src="/app.js?v=12"></script>
+  <script src="/html2canvas.min.js"></script>
+  <script src="/app.js?v=13"></script>
 </body>
 </html>

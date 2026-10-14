@@ -102,27 +102,53 @@ textarea:focus { outline: none; border-color: var(--gold); box-shadow: 0 0 0 3px
 .primary:active { transform: translateY(1px); }
 .primary:disabled { opacity: .5; box-shadow: none; }
 /* —— 回答卡片 —— */
-#results .card {
+#results .card, .turn-cards .card, .exp-wrap .card {
   border-left: 3px solid var(--gold); background: #faf7f1; border-radius: 10px;
   padding: 14px 15px; margin-bottom: 12px; box-shadow: 0 1px 4px rgba(33,27,20,.04);
 }
-#results .card h4 { margin: 0 0 10px; font-size: 16px; color: var(--brand1); font-weight: 800; display: flex; align-items: center; gap: 8px; }
-#results .card h4::before { content: ""; width: 4px; height: 17px; border-radius: 2px; flex: 0 0 auto; background: linear-gradient(180deg, var(--gold), var(--brand1)); }
-#results .card .ans { font-size: 14px; color: #2c2419; }
-#results .analysis { background: #fff8ea; border-left: 3px solid #d9a441; }
+#results .card h4, .turn-cards .card h4, .exp-wrap .card h4 { margin: 0 0 10px; font-size: 16px; color: var(--brand1); font-weight: 800; display: flex; align-items: center; gap: 8px; }
+#results .card h4::before, .turn-cards .card h4::before, .exp-wrap .card h4::before { content: ""; width: 4px; height: 17px; border-radius: 2px; flex: 0 0 auto; background: linear-gradient(180deg, var(--gold), var(--brand1)); }
+#results .card .ans, .turn-cards .card .ans, .exp-wrap .card .ans { font-size: 14px; color: #2c2419; }
+#results .analysis, .turn-cards .analysis, .exp-wrap .analysis { background: #fff8ea; border-left: 3px solid #d9a441; }
 /* —— 答案内 Markdown 排版 —— */
-#results .ans h1, #results .ans h2, #results .ans h3, #results .ans h4 { color: var(--brand1); font-weight: 800; line-height: 1.4; margin: 15px 0 8px; }
-#results .ans h1 { font-size: 18px; }
-#results .ans h2 { font-size: 16.5px; padding-left: 9px; border-left: 4px solid var(--gold); }
-#results .ans h3 { font-size: 15.5px; padding-left: 9px; border-left: 3px solid rgba(201,161,74,.55); }
-#results .ans h4 { font-size: 14.5px; }
-#results .ans > :first-child { margin-top: 0; }
-#results .ans p { margin: 0 0 10px; }
-#results .ans ul, #results .ans ol { margin: 0 0 10px; padding-left: 20px; }
-#results .ans li { margin: 5px 0; }
-#results .ans strong { color: #8a3b22; font-weight: 700; }
-#results .ans em { color: #6b5d4a; }
-#results .ans blockquote { margin: 0 0 10px; padding: 8px 12px; border-left: 3px solid var(--gold); background: rgba(201,161,74,.08); border-radius: 0 8px 8px 0; color: #5a4d3a; }
+#results .ans h1, .turn-cards .ans h1, .exp-wrap .ans h1,
+#results .ans h2, .turn-cards .ans h2, .exp-wrap .ans h2,
+#results .ans h3, .turn-cards .ans h3, .exp-wrap .ans h3,
+#results .ans h4, .turn-cards .ans h4, .exp-wrap .ans h4 { color: var(--brand1); font-weight: 800; line-height: 1.4; margin: 15px 0 8px; }
+#results .ans h1, .turn-cards .ans h1, .exp-wrap .ans h1 { font-size: 18px; }
+#results .ans h2, .turn-cards .ans h2, .exp-wrap .ans h2 { font-size: 16.5px; padding-left: 9px; border-left: 4px solid var(--gold); }
+#results .ans h3, .turn-cards .ans h3, .exp-wrap .ans h3 { font-size: 15.5px; padding-left: 9px; border-left: 3px solid rgba(201,161,74,.55); }
+#results .ans h4, .turn-cards .ans h4, .exp-wrap .ans h4 { font-size: 14.5px; }
+#results .ans > :first-child, .turn-cards .ans > :first-child, .exp-wrap .ans > :first-child { margin-top: 0; }
+#results .ans p, .turn-cards .ans p, .exp-wrap .ans p { margin: 0 0 10px; }
+#results .ans ul, #results .ans ol, .turn-cards .ans ul, .turn-cards .ans ol, .exp-wrap .ans ul, .exp-wrap .ans ol { margin: 0 0 10px; padding-left: 20px; }
+#results .ans li, .turn-cards .ans li, .exp-wrap .ans li { margin: 5px 0; }
+#results .ans strong, .turn-cards .ans strong, .exp-wrap .ans strong { color: #8a3b22; font-weight: 700; }
+#results .ans em, .turn-cards .ans em, .exp-wrap .ans em { color: #6b5d4a; }
+#results .ans blockquote, .turn-cards .ans blockquote, .exp-wrap .ans blockquote { margin: 0 0 10px; padding: 8px 12px; border-left: 3px solid var(--gold); background: rgba(201,161,74,.08); border-radius: 0 8px 8px 0; color: #5a4d3a; }
+/* —— 多轮对话 & 长图导出 —— */
+.res-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+.res-head .lbl { margin-bottom: 0; }
+.res-tools { display: flex; gap: 8px; }
+.ghost.sm { width: auto; margin: 0; font-size: 12px; padding: 5px 11px; border-radius: 9px; }
+.turn { margin-bottom: 16px; }
+.turn-q { font-size: 14px; color: #2c2419; margin-bottom: 10px; padding: 10px 12px; background: #f3ede2; border-radius: 10px; line-height: 1.55; }
+.turn-qh { display: inline-block; font-weight: 700; color: #fff; background: var(--brand1); border-radius: 6px; padding: 1px 7px; margin-right: 8px; font-size: 12px; }
+.exp-wrap {
+  position: fixed; left: -9999px; top: 0; width: 640px; background: #fff;
+  padding: 30px 26px; box-sizing: border-box; color: #2c2419;
+  font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+.exp-head { text-align: center; border-bottom: 2px solid #f0ebe1; padding-bottom: 16px; margin-bottom: 18px; }
+.exp-brand { font-size: 22px; font-weight: 800; color: #2b2118; }
+.exp-slog { font-size: 13px; color: #6b5d4a; margin-top: 6px; line-height: 1.5; }
+.exp-date { font-size: 12px; color: #9a8f7e; margin-top: 8px; }
+.exp-turn { margin-bottom: 20px; }
+.exp-q { font-size: 15px; font-weight: 600; color: #2c2419; margin-bottom: 12px; padding: 10px 12px; background: #f3ede2; border-radius: 10px; line-height: 1.55; }
+.exp-foot { margin-top: 24px; border-top: 2px solid #f0ebe1; padding-top: 18px; text-align: center; }
+.exp-qr { width: 120px; height: 120px; }
+.exp-foot-t { font-size: 13px; color: #6b5d4a; margin-top: 10px; }
+.exp-foot-u { font-size: 11px; color: #9a8f7e; margin-top: 4px; word-break: break-all; }
 #results .ans code { background: #efe7d8; padding: 1px 5px; border-radius: 4px; font-size: 12.5px; color: #8a3b22; }
 #results .ans hr { border: none; border-top: 1px dashed var(--line); margin: 13px 0; }
 #results .ans a { color: var(--brand1); text-decoration: underline; }

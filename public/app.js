@@ -23,11 +23,18 @@ const PKGS = [
   { id: 'master', name: '大师包', en: 'Master Pack', price: 99.0, quota: 40 },
 ];
 
+// 长图导出 branding
+const BRAND = '思想会客厅';
+const SLOGAN = '让 25 位顶尖思想家，用他们的认知框架帮你思考';
+const SITE_URL = 'https://nuwa-h5.onrender.com';
+const EXPORT_PREFIX = '思想会客厅';
+
 const state = {
   persons: [],
   selected: new Set(),
   pkg: PKGS[0],
   pkgs: PKGS,
+  turns: [],
 };
 
 const $ = (s) => document.querySelector(s);
@@ -207,36 +214,98 @@ async function ask() {
 
   const btn = $('#askBtn');
   btn.disabled = true; btn.textContent = EN ? 'Thinking…' : '思考中…';
-  resultsEl.innerHTML = '<div class="loading">' + (EN ? 'The thinkers are reflecting…' : '正在请大师们思考…') + '</div>';
+
+  const empty = resultsEl.querySelector('.empty'); if (empty) empty.remove();
+  const turn = document.createElement('div'); turn.className = 'turn';
+  const tq = document.createElement('div'); tq.className = 'turn-q';
+  tq.innerHTML = '<span class="turn-qh">' + (EN ? 'Q' : '问') + '</span>' + escapeHtml(qRaw);
+  const tcards = document.createElement('div'); tcards.className = 'turn-cards';
+  tcards.innerHTML = '<div class="loading">' + (EN ? 'The thinkers are reflecting…' : '正在请大师们思考…') + '</div>';
+  turn.appendChild(tq); turn.appendChild(tcards);
+  resultsEl.appendChild(turn);
+  turn.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
 
   try {
     let d;
+    const turnCards = [];
     if (state.selected.size === 1) {
       const r = await fetch(API + '/api/ask', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), person: [...state.selected][0], question: q, profile }) });
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
-      resultsEl.innerHTML = card(EN ? enNameOf(d.display_name) : d.display_name, d.answer);
+      const nm = EN ? enNameOf(d.display_name) : d.display_name;
+      tcards.innerHTML = card(nm, d.answer);
+      turnCards.push({ name: nm, ans: d.answer, analysis: false });
     } else {
       const r = await fetch(API + '/api/compare', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ uid: uid(), persons: [...state.selected], question: q, profile }) });
       d = await r.json();
       if (d.error === 'QUOTA_EXCEEDED') { showPay(); return; }
       if (d.error) throw new Error(d.error);
       let html = '';
-      d.answers.forEach(a => html += card(EN ? enNameOf(a.display_name) : a.display_name, a.answer));
-      if (d.analysis) html += card(EN ? 'Synthesis' : '整合对比', d.analysis, true);
-      resultsEl.innerHTML = html;
+      d.answers.forEach(a => { const nm = EN ? enNameOf(a.display_name) : a.display_name; html += card(nm, a.answer); turnCards.push({ name: nm, ans: a.answer, analysis: false }); });
+      if (d.analysis) { html += card(EN ? 'Synthesis' : '整合对比', d.analysis, true); turnCards.push({ name: EN ? 'Synthesis' : '整合对比', ans: d.analysis, analysis: true }); }
+      tcards.innerHTML = html;
     }
+    state.turns.push({ q: qRaw, cards: turnCards });
+    const tools = document.getElementById('resTools'); if (tools) tools.hidden = false;
     await refreshQuota();
   } catch (e) {
-    resultsEl.innerHTML = '<div class="empty">出错了：' + e.message + '</div>';
+    tcards.innerHTML = '<div class="empty">出错了：' + escapeHtml(e.message) + '</div>';
   } finally {
-    btn.disabled = false; btn.textContent = '提问';
+    btn.disabled = false; btn.textContent = EN ? 'Ask' : '提问';
   }
 }
 
 function card(name, ans, isAnalysis) {
   return '<div class="card' + (isAnalysis ? ' analysis' : '') + '"><h4>' + name + '</h4><div class="ans">' + mdToHtml(ans) + '</div></div>';
+}
+// 长图导出：把多轮对话渲染成带品牌头尾的竖图并下载
+function exportLongImage() {
+  if (!state.turns.length) { toast(EN ? 'Nothing to save yet' : '还没有可保存的内容'); return; }
+  const wrap = document.createElement('div');
+  wrap.className = 'exp-wrap';
+  const date = new Date().toLocaleDateString('zh-CN');
+  let body = '';
+  state.turns.forEach(t => {
+    body += '<div class="exp-turn"><div class="exp-q">问：' + escapeHtml(t.q) + '</div>';
+    t.cards.forEach(c => {
+      body += '<div class="card' + (c.analysis ? ' analysis' : '') + '"><h4>' + escapeHtml(c.name) + '</h4><div class="ans">' + mdToHtml(c.ans) + '</div></div>';
+    });
+    body += '</div>';
+  });
+  wrap.innerHTML =
+    '<div class="exp-head"><div class="exp-brand">' + BRAND + '</div>' +
+    '<div class="exp-slog">' + SLOGAN + '</div>' +
+    '<div class="exp-date">' + date + '</div></div>' +
+    '<div class="exp-body">' + body + '</div>' +
+    '<div class="exp-foot"><img class="exp-qr" src="/site-qr.png" alt="QR" />' +
+    '<div class="exp-foot-t">扫码进入「' + BRAND + '」继续对话</div>' +
+    '<div class="exp-foot-u">' + SITE_URL + '</div></div>';
+  document.body.appendChild(wrap);
+  const btn = document.getElementById('saveImg');
+  const old = btn.textContent; btn.disabled = true; btn.textContent = EN ? 'Generating…' : '生成中…';
+  const qr = wrap.querySelector('.exp-qr');
+  const go = () => html2canvas(wrap, { scale: 2, backgroundColor: '#ffffff', useCORS: true, logging: false })
+    .then(canvas => {
+      const a = document.createElement('a');
+      a.download = EXPORT_PREFIX + '-' + Date.now() + '.png';
+      a.href = canvas.toDataURL('image/png');
+      a.click();
+      wrap.remove(); btn.disabled = false; btn.textContent = old;
+      toast(EN ? 'Long image saved' : '长图已保存，去朋友圈分享吧');
+    }).catch(err => {
+      wrap.remove(); btn.disabled = false; btn.textContent = old;
+      toast(EN ? 'Failed: ' + err.message : '生成长图失败：' + err.message);
+    });
+  if (qr.complete && qr.naturalWidth) go();
+  else { qr.onload = go; qr.onerror = () => { wrap.remove(); btn.disabled = false; btn.textContent = old; toast('二维码加载失败'); }; }
+}
+function clearChat() {
+  if (!state.turns.length) return;
+  if (!confirm(EN ? 'Clear the whole conversation?' : '确定清空当前对话？')) return;
+  resultsEl.innerHTML = '<div class="empty">' + (EN ? 'No answers yet. Pick a master and ask.' : '还没有回答，先选大师、提个问题吧。') + '</div>';
+  state.turns = [];
+  const tools = document.getElementById('resTools'); if (tools) tools.hidden = true;
 }
 function escapeHtml(s) { return String(s).replace(/[&<>]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;' }[c])); }
 
@@ -368,6 +437,9 @@ $('#reshuffle').onclick = renderExamples;
 setInterval(() => { if (!$('#question').value.trim()) renderExamples(); }, 12000);
 
 loadPersons();
+// 长图保存 / 清空对话
+const _save = document.getElementById('saveImg'); if (_save) _save.onclick = exportLongImage;
+const _clear = document.getElementById('clearChat'); if (_clear) _clear.onclick = clearChat;
 // 下拉选择器开关：点按钮展开/收起，点外面自动收起
 const pToggle = document.getElementById('pickerToggle');
 const pPanel = document.getElementById('pickerPanel');
