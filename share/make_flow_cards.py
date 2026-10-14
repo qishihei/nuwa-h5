@@ -24,6 +24,14 @@ BOX = (233, 231, 227, 255)
 
 # ---------- 字体：在 PingFang.ttc 里探测 Semibold（重标题）/ Regular（正文） ----------
 def probe_font():
+    # 注意：本机 PIL + PingFang.ttc 对"迈/远"等字会渲染成空白（缺字 bug），
+    # 统一改用 Hiragino Sans GB：W6(粗)做标题、W3(常规)做正文
+    hira = '/System/Library/Fonts/Hiragino Sans GB.ttc'
+    try:
+        ImageFont.truetype(hira, 40, index=2)
+        return (hira, 2), (hira, 0)
+    except Exception:
+        pass
     heavy = regular = None
     for idx in range(10):
         try:
@@ -33,12 +41,7 @@ def probe_font():
             if 'Regular' in name and regular is None: regular = (CJK, idx)
         except Exception:
             break
-    if heavy is None:
-        try:
-            ImageFont.truetype('/System/Library/Fonts/Hiragino Sans GB.ttc', 40, index=1)
-            heavy = ('/System/Library/Fonts/Hiragino Sans GB.ttc', 1)
-        except Exception:
-            heavy = regular
+    if heavy is None: heavy = regular
     if regular is None: regular = (CJK, 0)
     return heavy, regular
 
