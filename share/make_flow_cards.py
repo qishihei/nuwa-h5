@@ -328,8 +328,7 @@ M = 70           # 左右边距
 CW = W - M * 2   # 内容宽
 
 def meta_text(tid):
-    n = 4800 + int(hashlib.md5(tid.encode()).hexdigest(), 16) % 1100
-    return f'全文约{n}字 | 阅读需12分钟'
+    return '25位大师在线 | 支持多轮深度追问'
 
 # 顶部引流 slogan：统一“与大师对话”调性，每卡按 id 稳定分配一条
 SLOGANS = [
