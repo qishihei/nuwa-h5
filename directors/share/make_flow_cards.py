@@ -391,7 +391,7 @@ def draw_card(c, tid, cn, measure=False):
 
     d.rectangle([M, y, W - M, y + 2], fill=(190, 186, 180, 255)); y += 34
     qs = 168
-    img.paste(qr_png(f'{BASE}/?thinker={tid}', qs), (M, int(y)))
+    img.paste(qr_png(f'{BASE}/?director={tid}', qs), (M, int(y)))
     tx = M + qs + 34; ty = y + 12
     d.text((tx, ty), f'长按扫码，与「{cn}」继续对话', font=font(HEAVY, 34), fill=INK); ty += 56
     d.text((tx, ty), BASE, font=font(REGULAR, 25), fill=GRAY); ty += 42
@@ -429,7 +429,7 @@ else:
         img = draw_card(CARDS[tid], tid, cn)
         fn = os.path.join(OUT, tid + '.png')
         img.save(fn)
-        items.append((cn, f'{BASE}/?thinker={tid}', os.path.basename(fn)))
+        items.append((cn, f'{BASE}/?director={tid}', os.path.basename(fn)))
         print(f'  [{i:2d}/{len(directors)}] {tid:22s} -> {fn}')
 
     cards_html = '\n'.join(
@@ -446,7 +446,7 @@ h1{{font-size:24px;margin:0 0 6px}}p{{opacity:.6;margin:0 0 24px}}
 code{{display:block;font-size:11px;opacity:.5;margin:6px 0;word-break:break-all}}
 a{{color:#e9c46a;font-size:13px;text-decoration:none}}</style></head>
 <body><h1>导演沙龙 · 引流知识卡片</h1>
-<p>共 {len(directors)} 张 · 扫码即选中对应导演（深链 ?thinker=id）</p>
+<p>共 {len(directors)} 张 · 扫码即选中对应导演（深链 ?director=id）</p>
 <div class="grid">{cards_html}</div></body></html>'''
     open(os.path.join(OUT, 'index.html'), 'w', encoding='utf-8').write(html)
     print('画廊 ->', os.path.join(OUT, 'index.html'))
