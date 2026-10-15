@@ -78,7 +78,7 @@ def wrap(text, fnt, max_w):
 CROP_Y = {
     'stanley-kubrick': 0.18,
     'christopher-nolan': 0.20,
-    'wong-kar-wai': 0.18,
+    'wong-kar-wai': 0.44,
     'charlie-chaplin': 0.45,
     'federico-fellini': 0.45,
     'michelangelo-antonioni': 0.50,
