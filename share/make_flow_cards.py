@@ -87,11 +87,38 @@ CROP_Y = {
     'friedrich-hayek': 0.08,
     'liqingzhao': 0.22,
     'socrates': 0.12,
-    'zhang-yiming': 0.18,
+    'zhang-yiming': 0.42,
     'richard-feynman': 0.12,
     'sam-altman': 0.15,
     'daniel-kahneman': 0.10,
+    'charlie-munger': 0.16,
 }
+
+# 画作类肖像：不裁切，整幅等比放入相框，两侧垫取自画芯边缘的底色（避免窄高画被横裁得只剩半张脸）
+PAD_IDS = {'sun-tzu', 'wang-yangming', 'sima-qian', 'socrates', 'confucius', 'laozi', 'liqingzhao'}
+
+def edge_color(p):
+    # 只采样顶部边缘（画作上方留白/底色），避免取到衣袍等主体色
+    px = p.load(); w, h = p.size
+    rs = gs = bs = n = 0
+    for x in range(0, w, max(1, w // 40)):
+        for yy in range(2, min(8, h)):
+            r, g, b = px[x, yy][:3]
+            rs += r; gs += g; bs += b; n += 1
+    return (rs // n, gs // n, bs // n)
+
+def place_photo(p, tw, th, tid):
+    """返回 (已处理成 tw×th 的图片)。PAD_IDS 内整幅缩放垫底，其余智能裁切。"""
+    if tid in PAD_IDS:
+        pw, ph0 = p.size
+        s = min(tw / pw, th / ph0)
+        nw, nh = max(1, int(pw * s)), max(1, int(ph0 * s))
+        pr = p.resize((nw, nh), Image.LANCZOS)
+        bg = Image.new('RGB', (tw, th), edge_color(p))
+        bg.paste(pr, ((tw - nw) // 2, (th - nh) // 2))
+        return bg
+    cen = smart_centering(p, tw, th, tid)
+    return ImageOps.fit(p, (tw, th), method=Image.LANCZOS, centering=cen)
 
 def smart_centering(img, tw, th, tid):
     W0, H0 = img.size
@@ -379,9 +406,7 @@ def draw_card(c, tid, cn, measure=False):
     if os.path.exists(pf):
         try:
             p = Image.open(pf).convert('RGB')
-            cen = smart_centering(p, CW, ph_h, tid)
-            p = ImageOps.fit(p, (CW, ph_h), method=Image.LANCZOS, centering=cen)
-            img.paste(p, (M, int(y)))
+            img.paste(place_photo(p, CW, ph_h, tid), (M, int(y)))
         except Exception:
             d.rectangle([M, y, W - M, y + ph_h], fill=BOX)
     else:
