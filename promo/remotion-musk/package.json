@@ -1,0 +1,20 @@
+{
+  "name": "remotion-musk",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "gen": "python3 gen_audio.py",
+    "render": "remotion render src/index.tsx MuskChat out/musk_chat_remotion.mp4",
+    "studio": "remotion studio"
+  },
+  "dependencies": {
+    "remotion": "4.0.536",
+    "@remotion/cli": "4.0.536",
+    "@remotion/media-utils": "4.0.536",
+    "react": "18.3.1",
+    "react-dom": "18.3.1"
+  },
+  "overrides": {
+    "esbuild": "0.17.19"
+  }
+}
