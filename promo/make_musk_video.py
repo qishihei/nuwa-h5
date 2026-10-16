@@ -41,10 +41,10 @@ def tts(text, voice, out_wav, pitch=None, rate=None):
     cmd += ['-o', aiff, text]
     subprocess.run(cmd, check=True)
     if pitch:
-        p = subprocess.run(['ffmpeg','-y','-i',aiff,'-af',f'rubberband=pitch={pitch}',out_wav],
-                           capture_output=True)
-        if p.returncode != 0:
-            subprocess.run(['ffmpeg','-y','-i',aiff,out_wav], check=True)
+        # 离线无 rubberband/sox：asetrate 降采样率=降调+变慢，atempo 拉回语速
+        # 关键：最终输出必须保持降后的采样率，否则 ffmpeg 重采样会把音高拉回女声
+        af = f'asetrate=32000,atempo={pitch}'
+        subprocess.run(['ffmpeg','-y','-i',aiff,'-af',af,out_wav], check=True)
     else:
         subprocess.run(['ffmpeg','-y','-i',aiff,out_wav], check=True)
     os.remove(aiff)
@@ -56,7 +56,9 @@ def dur(wav):
 
 VOICE_YOU = 'Ting-Ting'
 VOICE_MUSK = 'Ting-Ting'
-PITCH_MUSK = 0.82
+# 离线无男声：用统一降调模拟男声（同音高，避免重采样拉回女声）
+# 目标采样率取 32000Hz（=44100×0.7256），是 AAC 合法采样率，可保住降调效果
+PITCH = 32000 / 44100
 
 # ---------- 文字换行 ----------
 def wrap(text, font, max_w):
@@ -139,9 +141,9 @@ state = []   # 已确定的对话气泡
 for i,(btype, speaker, text) in enumerate(BEATS):
     wav = os.path.join(TMP, f'v{i}.wav')
     if speaker == 'musk':
-        tts(text, VOICE_MUSK, wav, PITCH_MUSK, RATE)
+        tts(text, VOICE_MUSK, wav, PITCH, RATE)
     else:
-        tts(text, VOICE_YOU, wav, None, RATE)
+        tts(text, VOICE_YOU, wav, PITCH, RATE)
     dd = dur(wav)
     # 更新对话状态
     if btype in ('you','musk'):
@@ -158,7 +160,7 @@ for i,(btype, speaker, text) in enumerate(BEATS):
 
 with open(os.path.join(TMP,'list.txt'),'w') as lf:
     for c in clips: lf.write(f"file '{c}'\n")
-out = os.path.join(HERE,'musk_chat_promo_natural.mp4')
+out = os.path.join(HERE,'musk_chat_promo_male.mp4')
 subprocess.run(['ffmpeg','-y','-f','concat','-safe','0','-i',os.path.join(TMP,'list.txt'),
-    '-c:v','libx264','-c:a','aac','-b:a','192k','-pix_fmt','yuv420p', out], check=True)
+    '-c:v','libx264','-c:a','aac','-b:a','192k','-ar','32000','-pix_fmt','yuv420p', out], check=True)
 print('OUTPUT ->', out)
