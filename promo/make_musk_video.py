@@ -10,6 +10,7 @@ TMP = os.path.join(HERE, '_vid_tmp')
 os.makedirs(TMP, exist_ok=True)
 W, H = 1080, 1920
 FPS = 25
+RATE = 240  # say 语速(words/min)，默认~200；240≈1.2x，比 ffmpeg 提速更自然
 FONT = '/System/Library/Fonts/Hiragino Sans GB.ttc'
 def f(sz, idx=0): return ImageFont.truetype(FONT, sz, index=idx)
 
@@ -33,9 +34,12 @@ BEATS = [
 ]
 
 # ---------- TTS ----------
-def tts(text, voice, out_wav, pitch=None):
+def tts(text, voice, out_wav, pitch=None, rate=None):
     aiff = out_wav[:-4] + '.aiff'
-    subprocess.run(['say', '-v', voice, '-o', aiff, text], check=True)
+    cmd = ['say', '-v', voice]
+    if rate: cmd += ['-r', str(rate)]
+    cmd += ['-o', aiff, text]
+    subprocess.run(cmd, check=True)
     if pitch:
         p = subprocess.run(['ffmpeg','-y','-i',aiff,'-af',f'rubberband=pitch={pitch}',out_wav],
                            capture_output=True)
@@ -135,9 +139,9 @@ state = []   # 已确定的对话气泡
 for i,(btype, speaker, text) in enumerate(BEATS):
     wav = os.path.join(TMP, f'v{i}.wav')
     if speaker == 'musk':
-        tts(text, VOICE_MUSK, wav, PITCH_MUSK)
+        tts(text, VOICE_MUSK, wav, PITCH_MUSK, RATE)
     else:
-        tts(text, VOICE_YOU, wav)
+        tts(text, VOICE_YOU, wav, None, RATE)
     dd = dur(wav)
     # 更新对话状态
     if btype in ('you','musk'):
@@ -154,7 +158,7 @@ for i,(btype, speaker, text) in enumerate(BEATS):
 
 with open(os.path.join(TMP,'list.txt'),'w') as lf:
     for c in clips: lf.write(f"file '{c}'\n")
-out = os.path.join(HERE,'musk_chat_promo.mp4')
+out = os.path.join(HERE,'musk_chat_promo_natural.mp4')
 subprocess.run(['ffmpeg','-y','-f','concat','-safe','0','-i',os.path.join(TMP,'list.txt'),
     '-c:v','libx264','-c:a','aac','-b:a','192k','-pix_fmt','yuv420p', out], check=True)
 print('OUTPUT ->', out)
