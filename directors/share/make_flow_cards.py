@@ -9,8 +9,10 @@ import os, sys, json, hashlib
 import qrcode
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter
 
-BASE = sys.argv[1] if len(sys.argv) > 1 and sys.argv[1] not in ('check',) else 'https://director-salon.onrender.com'
 CHECK = 'check' in sys.argv
+_args = [a for a in sys.argv[1:] if a != 'check']
+BASE = _args[0] if _args else 'https://director-salon.onrender.com'          # 二维码目标
+SHOW = _args[1] if len(_args) > 1 else 'https://director-salon.onrender.com'  # 卡片可见文字
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORTRAITS = os.path.join(HERE, 'posters', 'portraits')
 OUT = os.path.join(HERE, 'cards')
@@ -108,6 +110,19 @@ def smart_centering(img, tw, th, tid):
         if s > best: best, best_top = s, top
     cy = (best_top / 60) / max(1e-6, 1 - ch / H0)
     return (0.5, min(max(cy, 0.0), 1.0))
+
+def place_photo(p, tw, th, tid):
+    """近景人像（横裁要砍掉 40% 以上高度）→ 整幅等比 + 两侧压暗模糊，保证不切头；其余智能裁切。"""
+    pw, ph0 = p.size
+    ch = pw * th / tw
+    if ch < ph0 * 0.58:
+        bg = ImageOps.fit(p, (tw, th), method=Image.LANCZOS).filter(ImageFilter.GaussianBlur(26))
+        bg = Image.eval(bg, lambda v: int(v * 0.72))
+        s = min(tw / pw, th / ph0)
+        nw, nh = max(1, int(pw * s)), max(1, int(ph0 * s))
+        bg.paste(p.resize((nw, nh), Image.LANCZOS), ((tw - nw) // 2, (th - nh) // 2))
+        return bg
+    return ImageOps.fit(p, (tw, th), method=Image.LANCZOS, centering=smart_centering(p, tw, th, tid))
 
 def qr_png(url, size=300):
     qr = qrcode.QRCode(error_correction=qrcode.constants.ERROR_CORRECT_M, box_size=10, border=2)
@@ -341,14 +356,12 @@ def draw_card(c, tid, cn, measure=False):
         d.text((M, y), ln, font=rf, fill=GRAY); y += 44
     y += 26
 
-    ph_h = 440
+    ph_h = 640
     pf = os.path.join(PORTRAITS, tid + '.jpg')
     if os.path.exists(pf):
         try:
             p = Image.open(pf).convert('RGB')
-            cen = smart_centering(p, CW, ph_h, tid)
-            p = ImageOps.fit(p, (CW, ph_h), method=Image.LANCZOS, centering=cen)
-            img.paste(p, (M, int(y)))
+            img.paste(place_photo(p, CW, ph_h, tid), (M, int(y)))
         except Exception:
             d.rectangle([M, y, W - M, y + ph_h], fill=BOX)
     else:
@@ -394,7 +407,7 @@ def draw_card(c, tid, cn, measure=False):
     img.paste(qr_png(f'{BASE}/?director={tid}', qs), (M, int(y)))
     tx = M + qs + 34; ty = y + 12
     d.text((tx, ty), f'长按扫码，与「{cn}」继续对话', font=font(HEAVY, 34), fill=INK); ty += 56
-    d.text((tx, ty), BASE, font=font(REGULAR, 25), fill=GRAY); ty += 42
+    d.text((tx, ty), SHOW, font=font(REGULAR, 25), fill=GRAY); ty += 42
     d.text((tx, ty), '合作交流加微信：fuping394319746', font=font(REGULAR, 25), fill=GRAY); ty += 34
     y = max(y + qs, ty) + 30
 
@@ -407,14 +420,13 @@ directors = [s for s in data['directors'] if s['name'] in CARDS]
 print(f'载入导演 {len(directors)} 位，导出目录 -> {OUT}')
 
 if CHECK:
-    TW, TH, COLS = 380, 200, 5
+    TW, TH, COLS = 376, 256, 5
     sheet = Image.new('RGB', (COLS * TW, ((len(directors) + COLS - 1) // COLS) * (TH + 30)), (250, 250, 250))
     dd = ImageDraw.Draw(sheet)
     for i, s in enumerate(directors):
         tid = s['name']
         p = Image.open(os.path.join(PORTRAITS, tid + '.jpg')).convert('RGB')
-        cen = smart_centering(p, TW, TH, tid)
-        c = ImageOps.fit(p, (TW, TH), method=Image.LANCZOS, centering=cen)
+        c = place_photo(p, TW, TH, tid)
         x, yy = (i % COLS) * TW, (i // COLS) * (TH + 30)
         sheet.paste(c, (x, yy))
         dd.text((x + 6, yy + TH + 6), tid, fill=(0, 0, 0))
