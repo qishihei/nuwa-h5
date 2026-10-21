@@ -78,22 +78,29 @@ def wrap(text, fnt, max_w):
 # 智能裁切：在原图上滑动纵向窗口，选“边缘能量最高”（人脸/主体所在）的窗口；顶部略加权防切头
 # 逐人微调：CROP_Y[id] 强制指定窗口纵向位置 0(贴顶)~1(贴底)
 CROP_Y = {
+    # 人像类统一“贴顶”，保证头顶和下巴都在窗口内（照片框已加高到 640，纵向余量大）
     'elon-musk': 0.02,
-    'steve-jobs': 0.14,
-    'kazuo-inamori': 0.12,
+    'steve-jobs': 0.04,
+    'kazuo-inamori': 0.02,
+    'marie-curie': 0.0,
+    'coco-chanel': 0.0,
+    'friedrich-hayek': 0.0,
+    'friedrich-nietzsche': 0.0,
+    'ray-dalio': 0.0,
+    'nassim-taleb': 0.02,
+    'zhang-yiming': 0.22,
+    'richard-feynman': 0.05,
+    'sam-altman': 0.02,
+    'daniel-kahneman': 0.0,
+    'charlie-munger': 0.04,
+    'john-maynard-keynes': 0.04,
+    'warren-buffett': 0.05,
+    # 画作类（PAD_IDS 内不裁切，值仅占位）
     'wang-yangming': 0.50,
     'sun-tzu': 0.38,
     'sima-qian': 0.45,
-    'marie-curie': 0.22,
-    'coco-chanel': 0.10,
-    'friedrich-hayek': 0.08,
     'liqingzhao': 0.22,
     'socrates': 0.12,
-    'zhang-yiming': 0.42,
-    'richard-feynman': 0.12,
-    'sam-altman': 0.15,
-    'daniel-kahneman': 0.10,
-    'charlie-munger': 0.16,
 }
 
 # 画作类肖像：不裁切，整幅等比放入相框，两侧垫取自画芯边缘的底色（避免窄高画被横裁得只剩半张脸）
@@ -109,15 +116,26 @@ def edge_color(p):
             rs += r; gs += g; bs += b; n += 1
     return (rs // n, gs // n, bs // n)
 
+# 近景人像：脸占满画幅，横裁必切头 → 整幅等比 + 模糊背景（保命方案，脸 100% 完整）
+FORCE_BOX = {'ray-dalio'}
+
 def place_photo(p, tw, th, tid):
-    """返回 (已处理成 tw×th 的图片)。PAD_IDS 内整幅缩放垫底，其余智能裁切。"""
+    """返回 (已处理成 tw×th 的图片)。画作垫底色；近景人像垫模糊背景；其余智能裁切。"""
+    pw, ph0 = p.size
+    ch = pw * th / tw                     # 横裁时纵向窗口在原图尺度上的高
+    near_shot = ch < ph0 * 0.58           # 要砍掉 40% 以上高度 → 近景，走模糊垫底
     if tid in PAD_IDS:
-        pw, ph0 = p.size
         s = min(tw / pw, th / ph0)
         nw, nh = max(1, int(pw * s)), max(1, int(ph0 * s))
-        pr = p.resize((nw, nh), Image.LANCZOS)
         bg = Image.new('RGB', (tw, th), edge_color(p))
-        bg.paste(pr, ((tw - nw) // 2, (th - nh) // 2))
+        bg.paste(p.resize((nw, nh), Image.LANCZOS), ((tw - nw) // 2, (th - nh) // 2))
+        return bg
+    if near_shot or tid in FORCE_BOX:
+        bg = ImageOps.fit(p, (tw, th), method=Image.LANCZOS).filter(ImageFilter.GaussianBlur(26))
+        bg = Image.eval(bg, lambda v: int(v * 0.72))   # 压暗，突出主体
+        s = min(tw / pw, th / ph0)
+        nw, nh = max(1, int(pw * s)), max(1, int(ph0 * s))
+        bg.paste(p.resize((nw, nh), Image.LANCZOS), ((tw - nw) // 2, (th - nh) // 2))
         return bg
     cen = smart_centering(p, tw, th, tid)
     return ImageOps.fit(p, (tw, th), method=Image.LANCZOS, centering=cen)
@@ -136,7 +154,7 @@ def smart_centering(img, tw, th, tid):
     win = max(2, round(60 * ch / H0))
     best, best_top = -1, 0
     for top in range(0, 60 - win + 1):
-        s = sum(rows[top:top + win]) * (1 + 0.35 * (1 - top / 60))  # 顶部偏置
+        s = sum(rows[top:top + win]) * (1 + 0.85 * (1 - top / 60))  # 顶部强偏置：人像头顶不能被切
         if s > best: best, best_top = s, top
     cy = (best_top / 60) / max(1e-6, 1 - ch / H0)
     return (0.5, min(max(cy, 0.0), 1.0))
@@ -402,8 +420,8 @@ def draw_card(c, tid, cn, measure=False):
         d.text((M, y), ln, font=rf, fill=GRAY); y += 44
     y += 26
 
-    # 照片（4:3 裁切）
-    ph_h = 440
+    # 照片（约 1.47:1；过扁会把头像裁成半张脸）
+    ph_h = 640
     pf = os.path.join(PORTRAITS, tid + '.jpg')
     if os.path.exists(pf):
         try:
