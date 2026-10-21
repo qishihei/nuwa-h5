@@ -1,0 +1,5 @@
+# Netlify 配置：纯静态落地页，无构建步骤
+# 连接仓库时 Base directory 填 promo/director-salon/landing；或直接把本目录拖到 app.netlify.com/drop
+[build]
+  publish = "."
+  command = ""
