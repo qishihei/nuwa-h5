@@ -19,6 +19,10 @@
 
 ## 生效路径
 
+> **当前已部署（思想会客厅）**：`https://peaceful-paletas-5880b5.netlify.app`（Netlify Drop）。
+> ⚠️ 需在 Netlify 后台点过 **Make public** 才对匿名扫码可见；海报/卡片的二维码已按此地址重刷
+> （`share/posters/`、`share/cards/`，并同步到 `promo/thought-salon/`）。
+
 1. **部署落地页**（二选一）
    - Netlify：把 `landing/` 拖到 <https://app.netlify.com/drop> → 得到地址
    - GitHub Pages：仓库 Settings → Pages → Source `main` + `/ (root)`（实测当前未启用，需先开启）

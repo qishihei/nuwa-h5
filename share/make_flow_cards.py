@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 # 生成「思想会客厅」爆款引流知识卡片（杂志排版风：大标题+照片+双栏+反常识观点+金句+二维码）
-# 用法: python3 make_flow_cards.py [访问地址]
+# 用法: python3 make_flow_cards.py [二维码目标地址] [卡片上展示的网址]
+#   例: python3 make_flow_cards.py https://xxx.netlify.app   → 二维码指向落地页深链，卡片仍显示 nuwa-h5.onrender.com
 # 产物: share/cards/<thinker-id>.png (25 张) + share/cards/index.html (预览画廊)
 # 肖像: share/posters/portraits/<id>.jpg（复用已有素材；缺图自动用纯色块占位）
 
@@ -9,6 +10,7 @@ import qrcode
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter
 
 BASE = sys.argv[1] if len(sys.argv) > 1 else 'https://nuwa-h5.onrender.com'
+SHOW = sys.argv[2] if len(sys.argv) > 2 else 'https://nuwa-h5.onrender.com'  # 卡片可见文字（二维码仍编码 BASE 深链）
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORTRAITS = os.path.join(HERE, 'posters', 'portraits')
 OUT = os.path.join(HERE, 'cards')
@@ -457,7 +459,7 @@ def draw_card(c, tid, cn, measure=False):
     img.paste(qr_png(f'{BASE}/?thinker={tid}', qs), (M, int(y)))
     tx = M + qs + 34; ty = y + 12
     d.text((tx, ty), f'长按扫码，与「{cn}」继续对话', font=font(HEAVY, 34), fill=INK); ty += 56
-    d.text((tx, ty), BASE, font=font(REGULAR, 25), fill=GRAY); ty += 42
+    d.text((tx, ty), SHOW, font=font(REGULAR, 25), fill=GRAY); ty += 42
     d.text((tx, ty), '合作交流加微信：fuping394319746', font=font(REGULAR, 25), fill=GRAY); ty += 34
     y = max(y + qs, ty) + 30
 
