@@ -19,9 +19,13 @@
 
 ## 生效路径
 
-> **当前已部署（思想会客厅）**：`https://peaceful-paletas-5880b5.netlify.app`（Netlify Drop）。
-> ⚠️ 需在 Netlify 后台点过 **Make public** 才对匿名扫码可见；海报/卡片的二维码已按此地址重刷
-> （`share/posters/`、`share/cards/`，并同步到 `promo/thought-salon/`）。
+> **当前已部署（思想会客厅）**：`https://fanciful-paprenjak-a45679.netlify.app`
+> （Netlify Drop，已**公开**，匿名可访问——已实测 HTTP 200）。
+> 海报/卡片二维码已按此地址重刷（`share/posters/`、`share/cards/`，并同步到 `promo/thought-salon/`）。
+> 备选地址（同样已验证可用）：`https://qishihei.github.io/nuwa-h5/promo/thought-salon/landing`
+> （GitHub Pages，已启用并构建成功）。
+> 更换地址后重刷：
+> `python3 share/make_thinker_posters.py <新地址>` 与 `python3 share/make_flow_cards.py <新地址>`。
 
 1. **部署落地页**（二选一）
    - Netlify：把 `landing/` 拖到 <https://app.netlify.com/drop> → 得到地址
