@@ -1,0 +1,110 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>正在进入思想会客厅…</title>
+<style>
+  :root{
+    --bg:#0b0b0d; --card:#16161a; --txt:#e9e9ee; --dim:#8b8b94; --acc:#e9c46a; --line:#26262c;
+  }
+  *{box-sizing:border-box; margin:0; padding:0;}
+  html,body{height:100%;}
+  body{
+    background:var(--bg); color:var(--txt);
+    font-family:-apple-system,BlinkMacSystemFont,"PingFang SC","Hiragino Sans GB","Microsoft YaHei",sans-serif;
+    display:flex; align-items:center; justify-content:center; padding:28px;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{width:100%; max-width:380px; text-align:center;}
+  .logo{
+    display:inline-flex; align-items:center; gap:10px; margin-bottom:26px;
+    font-size:20px; font-weight:700; letter-spacing:.5px;
+  }
+  .logo .dot{width:12px;height:12px;border-radius:50%;background:var(--acc);box-shadow:0 0 14px var(--acc);}
+  .card{
+    background:var(--card); border:1px solid var(--line); border-radius:20px;
+    padding:34px 24px 26px;
+  }
+  h1{font-size:20px; margin-bottom:8px;}
+  p.sub{color:var(--dim); font-size:14px; line-height:1.6; margin-bottom:24px;}
+  .reel{width:74px;height:74px;margin:0 auto 22px;position:relative;}
+  .reel .ring{
+    position:absolute; inset:0; border-radius:50%;
+    border:3px solid #2a2a31; border-top-color:var(--acc); animation:spin 1s linear infinite;
+  }
+  .reel .ring:nth-child(2){inset:12px; border-top-color:#fff; animation-duration:1.4s; animation-direction:reverse; opacity:.5;}
+  .reel .core{
+    position:absolute; inset:26px; border-radius:50%; background:var(--acc); opacity:.9;
+    animation:pulse 1.6s ease-in-out infinite;
+  }
+  @keyframes spin{to{transform:rotate(360deg);}}
+  @keyframes pulse{0%,100%{transform:scale(.8);opacity:.5;} 50%{transform:scale(1);opacity:1;}}
+  .status{font-size:15px; height:24px;}
+  .status .ell::after{content:""; animation:ell 1.4s steps(4,end) infinite;}
+  @keyframes ell{0%{content:"";}25%{content:".";}50%{content:"..";}75%{content:"...";}}
+  .sec{color:var(--dim); font-size:13px; margin-top:10px; font-variant-numeric:tabular-nums;}
+  .manual{
+    display:none; margin-top:20px;
+    background:var(--acc); color:#171717; font-weight:700; font-size:15px;
+    padding:13px 22px; border:none; border-radius:12px; width:100%; cursor:pointer;
+    text-decoration:none;
+  }
+  .manual:active{transform:scale(.98);}
+  .foot{margin-top:18px; color:#55555f; font-size:12px; line-height:1.6;}
+  .ok .reel{display:none;}
+  .ok{border-color:var(--acc);}
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="logo"><span class="dot"></span>思想会客厅</div>
+    <div class="card" id="card">
+      <div class="reel"><div class="ring"></div><div class="ring"></div><div class="core"></div></div>
+      <h1>正在唤醒会客厅<span class="ell" id="ell"></span></h1>
+      <div class="status" id="status">首次唤醒约需 10–60 秒，请稍候</div>
+      <div class="sec">已等待 <b id="sec">0</b> 秒</div>
+      <a class="manual" id="manual" href="#">仍要进入 →</a>
+    </div>
+    <div class="foot">Render 免费实例在闲置后休眠，正在为你重新唤醒。<br>AI 生成演示内容，仅供娱乐。</div>
+  </div>
+
+<script>
+(function(){
+  var q = new URLSearchParams(location.search);
+  var APP = (q.get('app') || 'https://nuwa-h5.onrender.com').replace(/\/+$/,'');
+  var thinker = q.get('thinker') || q.get('t') || '';
+  var target  = APP + '/?thinker=' + encodeURIComponent(thinker);
+  var HEALTH  = APP + '/api/persons';
+
+  var $ = function(id){ return document.getElementById(id); };
+  var manual = $('manual'), card = $('card'), status = $('status');
+  manual.setAttribute('href', target);
+  var t0 = Date.now(), entered = false;
+
+  function enter(){
+    if (entered) return; entered = true;
+    card.classList.add('ok'); status.textContent = '已唤醒，正在进入…';
+    setTimeout(function(){ location.replace(target); }, 400);
+  }
+
+  function check(){
+    if (entered) return;
+    var ctrl = new AbortController(), to = setTimeout(function(){ ctrl.abort(); }, 50000);
+    fetch(HEALTH, { cache:'no-store', signal: ctrl.signal })
+      .then(function(r){ clearTimeout(to); return r.json(); })
+      .then(function(j){
+        if (j && Array.isArray(j.persons) && j.persons.length) enter();
+        else status.textContent = '服务启动中，即将就绪…';
+      })
+      .catch(function(){ clearTimeout(to); /* 冷启动期返回 Render 启动页/无CORS，视为未就绪 */ });
+  }
+
+  setInterval(function(){ $('sec').textContent = Math.round((Date.now()-t0)/1000); }, 500);
+  setInterval(check, 2500);
+  check();
+  setTimeout(function(){ manual.style.display='block'; }, 5000);
+})();
+</script>
+</body>
+</html>
