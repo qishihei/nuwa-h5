@@ -19,11 +19,15 @@
 
 ## 生效路径
 
-> **当前已部署（思想会客厅）**：`https://fanciful-paprenjak-a45679.netlify.app`
-> （Netlify Drop，已**公开**，匿名可访问——已实测 HTTP 200）。
+> **当前已部署（思想会客厅）**：`https://qishihei.github.io/nuwa-h5/promo/thought-salon/landing`
+> （GitHub Pages，已启用并构建成功，匿名可访问——已实测 HTTP 200）
 > 海报/卡片二维码已按此地址重刷（`share/posters/`、`share/cards/`，并同步到 `promo/thought-salon/`）。
-> 备选地址（同样已验证可用）：`https://qishihei.github.io/nuwa-h5/promo/thought-salon/landing`
-> （GitHub Pages，已启用并构建成功）。
+>
+> **为什么用 GitHub Pages 而不是 Netlify**：微信内实测——`github.io`（老域名，已被微信安全库收录）
+> **直接进，不弹「非微信官方网页」**；而 `xxx.netlify.app` 这类随机新域名**每次都弹**。
+> 导演会客厅同样走 `github.io`，实测也**不弹**。所以两家统一用 GitHub Pages。
+> 备用：`https://fanciful-paprenjak-a45679.netlify.app`（Netlify，已公开，HTTP 200，但微信会弹提示）。
+>
 > 更换地址后重刷：
 > `python3 share/make_thinker_posters.py <新地址>` 与 `python3 share/make_flow_cards.py <新地址>`。
 
