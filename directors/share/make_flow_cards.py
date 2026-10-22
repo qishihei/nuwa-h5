@@ -408,6 +408,7 @@ def draw_card(c, tid, cn, measure=False):
     tx = M + qs + 34; ty = y + 12
     d.text((tx, ty), f'长按扫码，与「{cn}」继续对话', font=font(HEAVY, 34), fill=INK); ty += 56
     d.text((tx, ty), SHOW, font=font(REGULAR, 25), fill=GRAY); ty += 42
+    d.text((tx, ty), '微信打开若提示“非官方网页”，点「继续访问」即可', font=font(REGULAR, 23), fill=GRAY); ty += 34
     d.text((tx, ty), '合作交流加微信：fuping394319746', font=font(REGULAR, 25), fill=GRAY); ty += 34
     y = max(y + qs, ty) + 30
 
