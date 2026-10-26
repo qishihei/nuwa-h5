@@ -9,14 +9,18 @@ import os, sys, json, hashlib
 import qrcode
 from PIL import Image, ImageDraw, ImageFont, ImageOps, ImageFilter
 
-BASE = sys.argv[1] if len(sys.argv) > 1 else 'https://nuwa-h5.onrender.com'
-SHOW = sys.argv[2] if len(sys.argv) > 2 else 'https://nuwa-h5.onrender.com'  # 卡片可见文字（二维码仍编码 BASE 深链）
+_ARGS = [a for a in sys.argv[1:]]
+EN = '--en' in _ARGS                                         # 英文卡片（输出到 cards-en/）
+_pos = [a for a in _ARGS if not a.startswith('--')]
+BASE = _pos[0] if len(_pos) > 0 else 'https://nuwa-h5.onrender.com'
+SHOW = _pos[1] if len(_pos) > 1 else 'https://nuwa-h5.onrender.com'  # 卡片可见文字（二维码仍编码 BASE 深链）
 HERE = os.path.dirname(os.path.abspath(__file__))
 PORTRAITS = os.path.join(HERE, 'posters', 'portraits')
-OUT = os.path.join(HERE, 'cards')
+OUT = os.path.join(HERE, 'cards-en' if EN else 'cards')
 os.makedirs(OUT, exist_ok=True)
 
-CJK = '/System/Library/Fonts/PingFang.ttc'
+_LAT = '/System/Library/Fonts/Helvetica.ttc'
+CJK = _LAT if (EN and os.path.exists(_LAT)) else '/System/Library/Fonts/PingFang.ttc'
 W = 1080
 INK = (17, 17, 17, 255)
 GRAY = (90, 88, 84, 255)
@@ -66,6 +70,16 @@ def fit_font(text, spec, start, min_size, max_width, spacing=0):
 
 def wrap(text, fnt, max_w):
     d = ImageDraw.Draw(Image.new('RGB', (10, 10)))
+    if EN:                                    # 英文按单词断行，避免把单词劈开
+        lines, cur = [], ''
+        for w in text.split():
+            trial = (cur + ' ' + w).strip()
+            if d.textlength(trial, font=fnt) > max_w and cur:
+                lines.append(cur); cur = w
+            else:
+                cur = trial
+        if cur: lines.append(cur)
+        return lines
     lines, cur = [], ''
     for ch in text:
         if d.textlength(cur + ch, font=fnt) > max_w and cur:
@@ -168,6 +182,12 @@ def qr_png(url, size=300):
 def cn_name(disp):
     import re
     return re.split(r'(?=[A-Za-z])', disp or '')[0].strip() or disp
+
+def en_name(disp):
+    """从 '查理·芒格 Charlie Munger' 取出英文部分。"""
+    import re
+    m = re.search(r"[A-Za-z][A-Za-z.'\- ]*$", disp or '')
+    return (m.group(0).strip() if m else disp) or disp
 
 # ---------- 每位大师的卡片文案 ----------
 CARDS = {
@@ -378,7 +398,7 @@ M = 70           # 左右边距
 CW = W - M * 2   # 内容宽
 
 def meta_text(tid):
-    return '25位大师在线 | 支持多轮深度追问'
+    return '25 great minds online | unlimited follow-up questions' if EN else '25位大师在线 | 支持多轮深度追问'
 
 # 顶部引流 slogan：统一“与大师对话”调性，每卡按 id 稳定分配一条
 SLOGANS = [
@@ -388,9 +408,17 @@ SLOGANS = [
     '让百年智慧，回答你今天的问题',
     '和思想巨匠，聊点真东西',
 ]
+SLOGANS_EN = [
+    'The closest conversation you will ever have with a great mind',
+    'Bring a great mind into your late-night thinking',
+    'Fifteen minutes with a first-class mind',
+    'A century of wisdom, answering your question today',
+    'Talk about the real thing with a great mind',
+]
 def slogan(tid):
-    i = int(hashlib.md5(tid.encode()).hexdigest(), 16) % len(SLOGANS)
-    return SLOGANS[i]
+    pool = SLOGANS_EN if EN else SLOGANS
+    i = int(hashlib.md5(tid.encode()).hexdigest(), 16) % len(pool)
+    return pool[i]
 
 def draw_card(c, tid, cn, measure=False):
     H = 2800  # 先画在大画布上，最后按实际内容高度裁切
@@ -437,27 +465,29 @@ def draw_card(c, tid, cn, measure=False):
     col_w = W // 2 - M - 34
     cf = font(REGULAR, 29)
     col_top = y
+    col_bottom = col_top
     for ci, col in enumerate((c['left'], c['right'])):
         x = M if ci == 0 else W // 2 + 34
-        yy = y
+        yy = col_top                       # 两栏都以同一顶部起排，避免右栏被推到左栏下方
         for ln in col:
             if ln == '': yy += 22; continue
             f2, _ = fit_font(ln, REGULAR, 29, 20, col_w)
             d.text((x, yy), ln, font=f2, fill=(44, 42, 40, 255))
             yy += 48
-        y = max(y, yy)
-    d.rectangle([W // 2 - 1, col_top, W // 2 + 1, y + 6], fill=(180, 176, 170, 255))
-    y += 52
+        col_bottom = max(col_bottom, yy)
+    d.rectangle([W // 2 - 1, col_top, W // 2 + 1, col_bottom + 6], fill=(180, 176, 170, 255))
+    y = col_bottom + 52
 
     # 反常识观点框
     bf = font(REGULAR, 29)
     hbf = font(HEAVY, 29)
-    body = wrap(c['contra'], bf, CW - 60 - d.textlength('反常识观点：', font=hbf))
+    lbl = 'Counter-intuitive: ' if EN else '反常识观点：'
+    body = wrap(c['contra'], bf, CW - 60 - d.textlength(lbl, font=hbf))
     box_h = len(body) * 46 + 54
     d.rounded_rectangle([M, y, W - M, y + box_h], radius=10, fill=BOX)
     tx = M + 30; ty = y + 27
-    d.text((tx, ty), '反常识观点：', font=hbf, fill=INK)
-    tx += d.textlength('反常识观点：', font=hbf)
+    d.text((tx, ty), lbl, font=hbf, fill=INK)
+    tx += d.textlength(lbl, font=hbf)
     for i, ln in enumerate(body):
         if i > 0: tx = M + 30
         d.text((tx, ty), ln, font=bf, fill=INK)
@@ -476,23 +506,31 @@ def draw_card(c, tid, cn, measure=False):
     qs = 168
     img.paste(qr_png(f'{BASE}/?thinker={tid}', qs), (M, int(y)))
     tx = M + qs + 34; ty = y + 12
-    d.text((tx, ty), f'长按扫码，与「{cn}」继续对话', font=font(HEAVY, 34), fill=INK); ty += 56
+    d.text((tx, ty), (f'Scan to keep talking with {cn}' if EN else f'长按扫码，与「{cn}」继续对话'),
+           font=font(HEAVY, 34), fill=INK); ty += 56
     d.text((tx, ty), SHOW, font=font(REGULAR, 25), fill=GRAY); ty += 42
-    d.text((tx, ty), '微信打开若提示“非官方网页”，点「继续访问」即可', font=font(REGULAR, 23), fill=GRAY); ty += 34
-    d.text((tx, ty), '合作交流加微信：fuping394319746', font=font(REGULAR, 25), fill=GRAY); ty += 34
+    d.text((tx, ty), ('In WeChat, if it says "unofficial page", tap Continue' if EN
+                      else '微信打开若提示“非官方网页”，点「继续访问」即可'),
+           font=font(REGULAR, 23), fill=GRAY); ty += 34
+    d.text((tx, ty), ('WeChat: fuping394319746' if EN else '合作交流加微信：fuping394319746'),
+           font=font(REGULAR, 25), fill=GRAY); ty += 34
     y = max(y + qs, ty) + 30
 
     if measure: return y
     return img.crop((0, 0, W, int(y)))
 
 # ---------- 执行 ----------
+if EN:
+    from cards_en import CARDS_EN
+    CARDS = CARDS_EN
+
 skills = json.load(open(os.path.join(HERE, '..', 'skills.json'), encoding='utf-8'))['skills']
 thinkers = [s for s in skills if s['name'] in CARDS]
 print(f'载入思想家 {len(thinkers)} 位，开始生成卡片 → {OUT}')
 items = []
 for i, s in enumerate(thinkers, 1):
     tid = s['name']
-    cn = cn_name(s.get('display_name', tid))
+    cn = (en_name if EN else cn_name)(s.get('display_name', tid))
     img = draw_card(CARDS[tid], tid, cn)
     fn = os.path.join(OUT, tid + '.png')
     img.save(fn)

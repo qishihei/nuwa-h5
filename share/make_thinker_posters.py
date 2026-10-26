@@ -10,15 +10,19 @@ import os, re, sys, json
 import qrcode
 from PIL import Image, ImageDraw, ImageFont, ImageFilter, ImageOps
 
-BASE = sys.argv[1] if len(sys.argv) > 1 else 'https://nuwa-h5.onrender.com'
+# 用法: python3 make_thinker_posters.py [访问地址] [--en]
+ARGS = sys.argv[1:]
+EN = '--en' in ARGS
+BASE = next((a for a in ARGS if a.startswith('http')), 'https://nuwa-h5.onrender.com')
 HERE = os.path.dirname(os.path.abspath(__file__))
 SKILLS_JSON = os.path.join(HERE, '..', 'skills.json')
-OUT  = os.path.join(HERE, 'posters')
-PORTRAITS = os.path.join(OUT, 'portraits')
+OUT  = os.path.join(HERE, 'posters-en' if EN else 'posters')
+PORTRAITS = os.path.join(HERE, 'posters', 'portraits')   # 肖像素材共用
 os.makedirs(OUT, exist_ok=True)
 os.makedirs(PORTRAITS, exist_ok=True)
 
-CJK = '/System/Library/Fonts/PingFang.ttc'
+_LAT = '/System/Library/Fonts/Helvetica.ttc'
+CJK = _LAT if (EN and os.path.exists(_LAT)) else '/System/Library/Fonts/PingFang.ttc'
 W, H = 750, 1334
 TOP, MID, BOT = (43, 33, 24), (74, 56, 38), (43, 33, 24)
 CREAM = (243, 233, 216, 255); GOLD = (233, 196, 106, 255)
@@ -53,6 +57,68 @@ META = {
     'friedrich-hayek':     ('《通往奴役之路》', ['自发秩序', '知识分散', '价格信号']),
     'john-maynard-keynes': ('《就业、利息和货币通论》', ['有效需求', '动物精神', '预期与不确定性']),
 }
+
+# 英文版：id -> (known for, signature themes x3)
+META_EN = {
+    'charlie-munger':      ("Poor Charlie's Almanack", ['Mental models', 'Inversion', 'Circle of competence']),
+    'elon-musk':           ('Elon Musk — Ashlee Vance', ['First principles', 'The 5-step process', 'Vertical integration']),
+    'richard-feynman':     ("Surely You're Joking, Mr. Feynman!", ['The Feynman technique', 'Doubt & falsifiability', 'Radical honesty']),
+    'zhang-yiming':        ('Talks & public interviews', ['Delayed gratification', 'Information efficiency', 'Equanimity']),
+    'naval-ravikant':      ('The Almanack of Naval Ravikant', ['Specific knowledge', 'Permissionless leverage', 'Productize yourself']),
+    'steve-jobs':          ('Steve Jobs — Walter Isaacson', ['Focus: the power of no', 'Technology × liberal arts', 'End-to-end control']),
+    'kazuo-inamori':       ('The Way — Living a Good Life', ['What is right as a human', 'Altruistic management', 'The success equation']),
+    'wang-yangming':       ('Instructions for Practical Living', ['Unity of knowing & acting', 'Extending innate knowing', 'Tempering on affairs']),
+    'socrates':            ('Apology — Plato', ['Socratic questioning', 'The unexamined life', 'I know that I know nothing']),
+    'warren-buffett':      ('Berkshire Letters to Shareholders', ['Economic moats', 'Margin of safety', 'Long-term compounding']),
+    'ray-dalio':           ('Principles', ['Radical truth', 'Pain + reflection = progress', 'Life as a machine']),
+    'confucius':           ('The Analects', ['Ren and reciprocity', 'Teaching to the learner', 'The middle way']),
+    'friedrich-nietzsche': ('Thus Spoke Zarathustra', ['Will to power', 'Become who you are', 'Amor fati']),
+    'laozi':               ('Tao Te Ching', ['Wu-wei: effortless action', 'The highest good is like water', 'Reversal is the Tao']),
+    'marie-curie':         ('Papers on Radioactivity', ['Total concentration', 'Rigorous evidence', 'Indifference to fame']),
+    'daniel-kahneman':     ('Thinking, Fast and Slow', ['System 1 & System 2', 'Anchoring & framing', 'Prospect theory']),
+    'sun-tzu':             ('The Art of War', ['Know the enemy, know yourself', 'Orthodox & unorthodox', 'Win without fighting']),
+    'jensen-huang':        ('The NVIDIA Way', ['Accelerated computing', 'The flat organization', 'Strategic patience']),
+    'coco-chanel':         ('Chanel in Her Own Words', ['Minimal elegance', 'Breaking the rules', 'Designed for freedom']),
+    'nassim-taleb':        ('Antifragile', ['Antifragility', 'Black swan thinking', 'Via negativa']),
+    'sima-qian':           ('Records of the Grand Historian', ['Heaven and humanity', 'Change through the ages', 'A school of his own']),
+    'sam-altman':          ('Essays on Startups', ['Compounding & momentum', 'Think big, start small', 'Long-term bets']),
+    'liqingzhao':          ('Ci Poems — Shu Yu Ci', ['The Yi’an style', 'Everyday speech set to music', 'Ci as its own genre']),
+    'friedrich-hayek':     ('The Road to Serfdom', ['Spontaneous order', 'Dispersed knowledge', 'Price signals']),
+    'john-maynard-keynes': ('The General Theory', ['Effective demand', 'Animal spirits', 'Expectation & uncertainty']),
+}
+
+# 界面文案（中/英）
+STR = {
+    'zh': {
+        'salon': '思想会客厅', 'work': '代表作', 'contact': '合作交流加微信：fuping394319746',
+        'scan': '长按识别 · 与{}对话', 'ov_cap': '长按识别二维码，立即体验', 'badge': '思',
+        'tagline': '让 25 位顶尖思想家，用他们的认知框架帮你思考',
+        'names1': '芒格 · 乔布斯 · 费曼 · 纳瓦尔 · 王阳明 · 稻盛和夫',
+        'names2': '巴菲特 · 达利欧 · 尼采 · 老子 · 孙子 · 塔勒布 · 凯恩斯 …',
+        'points': ['负债、辞职、婚姻、35 岁危机——说出你的纠结',
+                   '多位大师同时作答，观点碰撞对照',
+                   '不是鸡汤语录，是可执行的思考框架'],
+    },
+    'en': {
+        'salon': "THE THINKERS' SALON", 'work': 'Known for',
+        'contact': 'WeChat: fuping394319746', 'scan': 'Scan to talk with {}',
+        'ov_cap': 'Scan the QR code to begin', 'badge': 'T',
+        'tagline': '25 of the greatest minds — thinking with you',
+        'names1': 'Munger · Jobs · Feynman · Naval · Wang Yangming · Inamori',
+        'names2': 'Buffett · Dalio · Nietzsche · Laozi · Sun Tzu · Taleb · Keynes …',
+        'points': ['Debt, quitting your job, marriage, the 35-year-old crisis — just say it',
+                   'Several minds answer at once, in productive collision',
+                   'Not motivational quotes — frameworks you can actually use'],
+    },
+}
+S = lambda k: STR['en' if EN else 'zh'][k]
+META = META_EN if EN else META
+
+
+def en_name(disp):
+    """从 '查理·芒格 Charlie Munger' 里取出英文部分。"""
+    m = re.search(r'[A-Za-z][A-Za-z.\'\- ]*$', disp or '')
+    return (m.group(0).strip() if m else disp) or disp
 
 def cn_name(disp):
     return re.split(r'(?=[A-Za-z])', disp or '')[0].strip() or disp
@@ -105,7 +171,7 @@ def gradient_bg():
 # ---------- 单张海报 ----------
 def make_poster(tid, disp):
     work, themes = META.get(tid, ('', []))
-    cn = cn_name(disp)
+    cn = en_name(disp) if EN else cn_name(disp)
     url = f'{BASE}/?thinker={tid}'
 
     img = gradient_bg()
@@ -144,7 +210,7 @@ def make_poster(tid, disp):
             pass
 
     # 顶栏小标
-    center(d, '思想会客厅', 70, font(CJK, 26), SUB, spacing=4)
+    center(d, S('salon'), 70, font(CJK, 26), SUB, spacing=4)
     d.line([cx-90, 112, cx+90, 112], fill=GOLD, width=2)
 
     # 大师名（大字，长名自动缩号）
@@ -153,8 +219,9 @@ def make_poster(tid, disp):
 
     # 代表作
     if work:
-        wf, _ = fit_font(d, '代表作  ' + work, CJK, 26, 16, W - 90)
-        center(d, '代表作  ' + work, 505, wf, GOLD)
+        wtxt = S('work') + '  ' + work
+        wf, _ = fit_font(d, wtxt, CJK, 26, 16, W - 90)
+        center(d, wtxt, 505, wf, GOLD)
 
     # 招牌主题（最多 3 行）
     ty = 560
@@ -168,12 +235,12 @@ def make_poster(tid, disp):
     card_y = 720
     d.rounded_rectangle([cx-200, card_y, cx+200, card_y+400], radius=28, fill=(250, 247, 241, 255))
     img.paste(qrimg, (cx-140, card_y+30))
-    cap = '长按识别 · 与' + cn + '对话'
+    cap = S('scan').format(cn)
     cf, _ = fit_font(d, cap, CJK, 25, 15, 380)
     d.text((cx, card_y+336), cap, font=cf, fill=(107, 93, 74, 255), anchor='mm')
 
     # 底部
-    center(d, '合作交流加微信：fuping394319746', 1250, font(CJK, 21), DIM)
+    center(d, S('contact'), 1250, font(CJK, 21), DIM)
 
     return img.convert('RGB'), url
 
@@ -188,27 +255,23 @@ def make_overview():
 
     d.rounded_rectangle([cx-48, 70, cx+48, 166], radius=24, fill=(233, 196, 106, 255))
     d.rounded_rectangle([cx-48, 70, cx+48, 166], radius=24, fill=(192, 86, 59, 90))
-    d.text((cx, 118), '思', font=font(CJK, 54), fill=BROWN, anchor='mm')
+    d.text((cx, 118), S('badge'), font=font(CJK, 54), fill=BROWN, anchor='mm')
 
-    title = '思想会客厅'
+    title = S('salon')
     tf, ts = fit_font(d, title, CJK, 62, 30, W - 100, spacing=8)
     center(d, title, 196, tf, CREAM, spacing=8 if ts >= 50 else 3)
 
-    tagline = '让 25 位顶尖思想家，用他们的认知框架帮你思考'
+    tagline = S('tagline')
     gf, _ = fit_font(d, tagline, CJK, 24, 15, W - 70)
     center(d, tagline, 292, gf, SUB)
 
-    m1 = '芒格 · 乔布斯 · 费曼 · 纳瓦尔 · 王阳明 · 稻盛和夫'
-    m2 = '巴菲特 · 达利欧 · 尼采 · 老子 · 孙子 · 塔勒布 · 凯恩斯 …'
+    m1 = S('names1')
+    m2 = S('names2')
     for text, yy in ((m1, 380), (m2, 428)):
         mf, _ = fit_font(d, text, CJK, 24, 15, W - 70)
         center(d, text, yy, mf, GOLD)
 
-    points = [
-        '负债、辞职、婚姻、35 岁危机——说出你的纠结',
-        '多位大师同时作答，观点碰撞对照',
-        '不是鸡汤语录，是可执行的思考框架',
-    ]
+    points = S('points')
     py = 510
     for p in points:
         pf2, _ = fit_font(d, p, CJK, 24, 15, W - 140)
@@ -220,11 +283,11 @@ def make_overview():
     card_y = 770
     d.rounded_rectangle([cx-200, card_y, cx+200, card_y+380], radius=28, fill=(250, 247, 241, 255))
     img.paste(qrimg, (cx-140, card_y+28))
-    cap = '长按识别二维码，立即体验'
+    cap = S('ov_cap')
     cf, _ = fit_font(d, cap, CJK, 23, 15, 380)
     d.text((cx, card_y+322), cap, font=cf, fill=(107, 93, 74, 255), anchor='mm')
 
-    center(d, '合作交流加微信：fuping394319746', 1340, font(CJK, 21), DIM)
+    center(d, S('contact'), 1340, font(CJK, 21), DIM)
     return img.convert('RGB'), url
 
 # ---------- 执行 ----------
@@ -235,7 +298,7 @@ items = []
 
 ovi, ourl = make_overview()
 ovi.save(os.path.join(OUT, '00-总览.png'))
-items.append(('总览 · 扫码进大厅', ourl, '00-总览.png'))
+items.append(('Overview · scan to enter' if EN else '总览 · 扫码进大厅', ourl, '00-总览.png'))
 print(f'  [ 总览 ] -> {os.path.join(OUT, "00-总览.png")}')
 
 for i, s in enumerate(thinkers, 1):
@@ -243,7 +306,7 @@ for i, s in enumerate(thinkers, 1):
     img, url = make_poster(tid, s.get('display_name', tid))
     fn = os.path.join(OUT, tid + '.png')
     img.save(fn)
-    items.append((cn_name(s.get('display_name', tid)), url, os.path.basename(fn)))
+    items.append(((en_name if EN else cn_name)(s.get('display_name', tid)), url, os.path.basename(fn)))
     print(f'  [{i:2d}/{len(thinkers)}] {tid:22s} -> {fn}')
 
 # 预览画廊
