@@ -31,9 +31,15 @@
 | `OPENAI_API_KEY` | 接口密钥 | `sk-xxxx` |
 | `OPENAI_MODEL` | 模型名 | `deepseek-chat` |
 | `ADMIN_TOKEN` | 后台口令（默认 `nuwa-admin`，建议改） | `nuwa-admin` |
-| `FREE_QUOTA` | 免费体验次数（默认 3） | `3` |
+| `FREE_QUOTA` | 免费体验次数（默认 3） | `10` |
 
 > 这些变量和 thinker 版一致。把 thinker 版 Render 后台里那几个值原样搬过来即可。
+>
+> **`FREE_QUOTA` 建议填 10 而不是默认的 3**：一次「25 位并排对照」只消耗 1 次额度，但用户往往想换
+> 几组人再试一次；只给 3 次会让人刚上手就撞到付费墙。若活动期间担心成本，活动结束再改回 3 即可。
+>
+> 注意：`render.yaml`（仓库根的 Blueprint 配置）**管不到这个服务** —— director-salon 是手动建的、
+> Root Directory 为 `directors`，环境变量只在 Render 后台改。改完点 Save Changes 会自动重新部署。
 
 ## 推荐模型（直接决定专家级专业度上限）
 

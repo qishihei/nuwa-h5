@@ -180,6 +180,19 @@ https://<作品名>.app.workbuddy.host/?sharecode=<10 位大写码>
 ## 投稿前 48 小时清单
 
 - [ ] **解决 sharecode**（唯一硬阻塞，见上一节；缺它会「影响评审」）
+      ```bash
+      cd promo/contest && python3 make_static.py   # 产出 promo/submit/{thought,director}-static/
+      ```
+      再各自到 WorkBuddy 客户端里发布，拿到 `https://xxx.app.workbuddy.host/?sharecode=XXX`。
+- [ ] **放宽免费额度**（否则评委问 3 次就撞付费墙）
+      - 思想端 ✅ **已完成**：`render.yaml` 里 `FREE_QUOTA` 改为 `10`，线上实测 `free_quota = 10`
+      - 导演端 ⬜ **待做**：手动建的 Blueprint 管不到，需在 Render 后台改
+        `director-salon → Environment → FREE_QUOTA = 10 → Save Changes`（会自动重新部署）
+      - 验证：均应返回 `10`
+        ```bash
+        curl -s https://nuwa-h5.onrender.com/api/persons        | python3 -c "import sys,json;print(json.load(sys.stdin)['free_quota'])"
+        curl -s https://director-salon.onrender.com/api/persons | python3 -c "import sys,json;print(json.load(sys.stdin)['free_quota'])"
+        ```
 - [ ] 表单 02 名称 / 03 昵称 / 05 介绍 按上面两节逐字粘贴，**两件作品分两次提交**
 - [x] **开保活**（直接影响 40 分的完成度评分）—— **两个服务均已启动**，10 分钟一轮 ping
       ```bash
