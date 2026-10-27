@@ -18,4 +18,4 @@ services:
       - key: ADMIN_TOKEN
         sync: false
       - key: FREE_QUOTA
-        value: "3"
+        value: "10"
