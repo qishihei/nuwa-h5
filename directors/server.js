@@ -25,6 +25,8 @@ const DIRECTORS_JSON = path.join(ROOT, 'directors.json');
 const QR_PATH = path.join(PUBLIC, 'wechat_pay_qr.png');
 
 const FREE_QUOTA = parseInt(process.env.FREE_QUOTA || '3', 10) || 3;
+// 一次「多人对照」最多允许多少位同时作答，默认放开到全阵容（25 位）。
+const MAX_COMPARE = parseInt(process.env.MAX_COMPARE || '25', 10) || 25;
 const ENDPOINT = process.env.OPENAI_ENDPOINT || '';
 const API_KEY = process.env.OPENAI_API_KEY || '';
 const MODEL = process.env.OPENAI_MODEL || 'deepseek-chat';
@@ -53,7 +55,19 @@ DIRECTORS.forEach(d => { if (d.name) DISPLAY[d.name] = d.display_name || d.name;
 
 // ——— 服务端额度存储（零依赖，落盘到 data/store.json）———
 const STORE_PATH = path.join(ROOT, 'data', 'store.json');
-let store = (() => { try { return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8')); } catch (e) { return { users: {}, pains: {}, questions: [] }; } })();
+let store = (() => { try { return JSON.parse(fs.readFileSync(STORE_PATH, 'utf-8')) || {}; } catch (e) { return {}; } })();
+// 旧版本写出的 store.json 可能缺少后加的字段，缺哪个补哪个；
+// 否则 recordQuestion 会读到 undefined 直接抛错，整个对照接口返回 500。
+(function normalizeStore() {
+  const need = { users: Object, pains: Object, questions: Array };
+  let dirty = false;
+  for (const k of Object.keys(need)) {
+    const v = store[k];
+    const ok = need[k] === Array ? Array.isArray(v) : (v && typeof v === 'object');
+    if (!ok) { store[k] = need[k] === Array ? [] : {}; dirty = true; }
+  }
+  if (dirty) saveStore();
+})();
 function saveStore() { try { fs.mkdirSync(path.dirname(STORE_PATH), { recursive: true }); fs.writeFileSync(STORE_PATH, JSON.stringify(store, null, 2)); } catch (e) {} }
 function ensureUser(uid) { if (!uid) return null; if (!store.users[uid]) store.users[uid] = { used: 0, bonus: 0, permanent: false }; return store.users[uid]; }
 function remaining(uid) { const u = ensureUser(uid); if (!u) return 0; if (u.permanent) return -1; return Math.max(0, FREE_QUOTA - u.used) + (u.bonus || 0); }
@@ -260,7 +274,7 @@ const server = http.createServer(async (req, res) => {
     if (p === '/api/compare' && req.method === 'POST') {
       const body = JSON.parse(await readBody(req) || '{}');
       const uid = body.uid || '';
-      const persons = (body.persons || []).filter(Boolean).slice(0, 5);
+      const persons = (body.persons || []).filter(Boolean).slice(0, MAX_COMPARE);
       const question = (body.question || '').trim();
       if (!uid) return sendJSON(res, 400, { error: '缺少用户标识' });
       if (!persons.length) return sendJSON(res, 400, { error: '请选择至少一位人物' });
@@ -271,16 +285,20 @@ const server = http.createServer(async (req, res) => {
         recordQuestion(uid, question, 'compare', persons.join(','));
         const fullQ = question;
         const answers = {};
+        // 参与人数多时收短单篇：25 篇长文会把手机页面淹掉，反而损害可读性。
+        const many = persons.length > 6;
+        const perTok = many ? 320 : 900;
+        const perQ = many ? (fullQ + '\n\n（多位导演并排作答，请控制在 220 字以内：直接给判断和做法，不要铺陈。）') : fullQ;
         await Promise.all(persons.map(async (person) => {
           const t = directorFramework(person);
           if (!t) { answers[person] = ''; return; }
-          let a = await callLLM(t, fullQ, 900);
+          let a = await callLLM(t, perQ, perTok);
           if (a === null) a = `[演示模式] ${DISPLAY[person] || person} 关于「${question}」的示例回答。`;
           answers[person] = a;
         }));
         let analysis = '';
         if (CONFIGURED && Object.values(answers).some(Boolean)) {
-          analysis = await analyzeCompare(answers, question).catch(() => '');
+          analysis = await analyzeCompare(answers, question, many ? 1400 : 900).catch(() => '');
         }
         return sendJSON(res, 200, {
           answers: persons.map(person => ({ person, display_name: DISPLAY[person] || person, answer: answers[person] })),

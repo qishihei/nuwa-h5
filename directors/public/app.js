@@ -35,12 +35,13 @@ const AVATAR_COLORS = ['#c0563b','#b07b2c','#5b8a72','#3f6fa3','#8a5a9e','#a6444
 function makeChip(p, i) {
   const el = document.createElement('div');
   el.className = 'person' + (state.selected.has(p.name) ? ' on' : '');
+  el.dataset.name = p.name;
   const nm = EN ? enNameOf(p.display_name) : p.display_name;
   const initial = (EN ? nm : nm.replace(/[·\s].*$/, '')).trim().charAt(0) || '?';
   el.innerHTML = '<span class="ava" style="background:' + AVATAR_COLORS[i % AVATAR_COLORS.length] + '">' + initial + '</span><span class="pn">' + nm + '</span>';
   el.onclick = () => {
     if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
-    else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
+    else { if (state.selected.size >= MAXSEL) { toast((EN ? 'Max ' : '最多同时选 ') + MAXSEL + (EN ? ' at once' : ' 位')); return; } state.selected.add(p.name); el.classList.add('on'); }
     syncPicker();
   };
   return el;
@@ -72,6 +73,9 @@ function buildHot(term) {
   wrap.appendChild(row);
   return wrap;
 }
+
+// 一次最多让多少位同时作答（与服务端 MAX_COMPARE 保持一致）
+const MAXSEL = 25;
 
 const state = {
   persons: [],
@@ -134,7 +138,7 @@ function applyDeepLink() {
   const want = raw.split(',').map(s => s.trim()).filter(Boolean);
   const added = [];
   want.forEach(id => {
-    if (state.selected.size >= 5) return;
+    if (state.selected.size >= MAXSEL) return;
     const p = state.persons.find(x =>
       x.name === id || x.name.includes(id) ||
       (x.display_name || '').toLowerCase().includes(id.toLowerCase()));
@@ -165,6 +169,35 @@ function renderPersons() {
 
 // 下拉选择器：按钮摘要 + 已选标签同步
 function cnShort(nm) { return nm.replace(/\s+[A-Za-z].*$/, '').trim(); }
+// 批量选择：一次点亮全阵容 / 热门 6 位 / 清空
+function selectAll() {
+  state.persons.forEach(p => { if (state.selected.size < MAXSEL) state.selected.add(p.name); });
+  markChips(); syncPicker();
+}
+function selectHot(n) {
+  state.selected.clear();
+  (HOT || []).forEach(id => {
+    if (state.selected.size >= n) return;
+    if (state.persons.some(p => p.name === id)) state.selected.add(id);
+  });
+  markChips(); syncPicker();
+}
+function selectNone() { state.selected.clear(); markChips(); syncPicker(); }
+function markChips() {
+  [...personsEl.querySelectorAll('.person')].forEach(el => {
+    const key = el.dataset.name;
+    if (!key) return;
+    el.classList.toggle('on', state.selected.has(key));
+  });
+}
+(function bindPickerActions() {
+  const map = { btnAll: selectAll, btnNone: selectNone, btnHot: () => selectHot(6) };
+  Object.keys(map).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.onclick = () => { map[id](); toast(EN ? 'Updated selection' : '已更新选择'); };
+  });
+})();
+
 function syncPicker() {
   const label = document.getElementById('pickerLabel');
   const picked = document.getElementById('picked');

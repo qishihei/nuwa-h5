@@ -29,6 +29,9 @@ const SLOGAN = '让 25 位顶尖思想家，用他们的认知框架帮你思考
 const SITE_URL = 'https://nuwa-h5.onrender.com';
 const EXPORT_PREFIX = '思想会客厅';
 
+// 一次最多让多少位同时作答（与服务端 MAX_COMPARE 保持一致）
+const MAXSEL = 25;
+
 const state = {
   persons: [],
   selected: new Set(),
@@ -85,7 +88,7 @@ function makeChip(p, i) {
   if (state.selected.has(p.name)) el.classList.add('on');
   el.onclick = () => {
     if (state.selected.has(p.name)) { state.selected.delete(p.name); el.classList.remove('on'); }
-    else { if (state.selected.size >= 5) { toast(EN ? 'Max 5 at once' : '最多同时选 5 位'); return; } state.selected.add(p.name); el.classList.add('on'); }
+    else { if (state.selected.size >= MAXSEL) { toast((EN ? 'Max ' : '最多同时选 ') + MAXSEL + (EN ? ' at once' : ' 位')); return; } state.selected.add(p.name); el.classList.add('on'); }
     syncPicker();
   };
   return el;
@@ -129,7 +132,7 @@ async function loadPersons() {
   const deepSet = new Set(deepRaw ? deepRaw.split(',').map(s => s.trim()).filter(Boolean) : []);
   const added = [];
   state.persons.forEach((p, i) => {
-    if (deepSet.size && state.selected.size < 5) {
+    if (deepSet.size && state.selected.size < MAXSEL) {
       const hit = [...deepSet].some(id =>
         p.name === id || p.name.includes(id) ||
         (p.display_name || '').toLowerCase().includes(id.toLowerCase()));
@@ -146,6 +149,35 @@ async function loadPersons() {
   syncPicker();
   await refreshQuota();
 }
+
+// 批量选择：一次点亮全阵容 / 热门 6 位 / 清空
+function selectAll() {
+  state.persons.forEach(p => { if (state.selected.size < MAXSEL) state.selected.add(p.name); });
+  markChips(); syncPicker();
+}
+function selectHot(n) {
+  state.selected.clear();
+  (HOT || []).forEach(id => {
+    if (state.selected.size >= n) return;
+    if (state.persons.some(p => p.name === id)) state.selected.add(id);
+  });
+  markChips(); syncPicker();
+}
+function selectNone() { state.selected.clear(); markChips(); syncPicker(); }
+function markChips() {
+  [...personsEl.querySelectorAll('.person')].forEach(el => {
+    const key = el.dataset.name;
+    if (!key) return;
+    el.classList.toggle('on', state.selected.has(key));
+  });
+}
+(function bindPickerActions() {
+  const map = { btnAll: selectAll, btnNone: selectNone, btnHot: () => selectHot(6) };
+  Object.keys(map).forEach(id => {
+    const el = document.getElementById(id);
+    if (el) el.onclick = () => { map[id](); $(id) && toast(EN ? 'Updated selection' : '已更新选择'); };
+  });
+})();
 
 // 下拉选择器：按钮摘要 + 已选标签同步
 function cnShort(nm) { return nm.replace(/\s+[A-Za-z].*$/, '').trim(); }

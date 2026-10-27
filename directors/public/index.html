@@ -21,13 +21,18 @@
 
   <main>
     <section class="block">
-      <label class="lbl">① 选择一位或多位「导演」（多选将生成对比）</label>
+      <label class="lbl">① 选择一位或多位「导演」（支持一次全选 25 位并排对照）</label>
       <button type="button" class="picker-toggle" id="pickerToggle" aria-expanded="false">
         <span id="pickerLabel">点此选择导演</span><span class="caret">▾</span>
       </button>
       <div class="picked" id="picked"></div>
       <div class="picker-panel" id="pickerPanel" hidden>
         <input id="searchBox" class="pf-in" type="search" placeholder="搜索导演 / 国家 / 流派，如：黑泽、日本、新浪潮" />
+        <div class="picker-actions">
+          <button type="button" class="ghost sm" id="btnAll">全选全部导演</button>
+          <button type="button" class="ghost sm" id="btnHot">选热门 6 位</button>
+          <button type="button" class="ghost sm" id="btnNone">清空</button>
+        </div>
         <div class="persons" id="persons"><div class="loading">加载中…</div></div>
       </div>
     </section>
