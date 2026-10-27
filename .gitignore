@@ -7,3 +7,4 @@ __pycache__/
 *.pyc
 keep-warm.log
 keep-warm.pid
+promo/submit/
